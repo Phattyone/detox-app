@@ -2,7 +2,7 @@
    API.JS  —  External API client (Anthropic AI Coach)
    ═══════════════════════════════════════════════════════════════════════════
    SECURITY: The Anthropic key is NEVER in this file.
-   All calls route through netlify/functions/ai-proxy.js.
+   All calls route through api/ai-proxy.js.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const API = {
@@ -59,7 +59,7 @@ Keep responses concise, warm, and practical. Use encouraging language. Responses
     }
 
     const endpoint = (window.APP_CONFIG && window.APP_CONFIG.AI_PROXY_ENDPOINT)
-      || '/.netlify/functions/ai-proxy';
+      || '/api/ai-proxy';
 
     // Keep only the last 6 messages for context (controls cost)
     const recentMessages = conversationHistory.slice(-6).map(m => ({
