@@ -214,8 +214,8 @@ const RECIPE_DATA = {
         why: "Apple Carrot = most approachable. Green Detox = most powerful diuretic. Citrus Beet = most liver-active.",
         options: [
           {
-            value: "Apple Carrot Ginger",
-            instruction: "APPLE CARROT GINGER: Wash 3 medium apples and 4 large carrots. Core apples and cut into wedges (do not peel). Scrub carrots and trim tops (do not peel). Peel 1 inch of fresh ginger and peel 1/2 lemon. Juice in this order: carrots first, then apple, then ginger, then lemon last. Stir well and drink immediately.",
+            value: "Apple Carrot Ginger Juice",
+            instruction: "APPLE CARROT GINGER JUICE: Wash 3 medium apples and 4 large carrots. Core apples and cut into wedges (do not peel). Scrub carrots and trim tops (do not peel). Peel 1 inch of fresh ginger and peel 1/2 lemon. Juice in this order: carrots first, then apple, then ginger, then lemon last. Stir well and drink immediately.",
             note: "Best for days 1-3 when adjusting to juicing. Most approachable flavor."
           },
           {
