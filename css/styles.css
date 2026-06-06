@@ -4814,16 +4814,16 @@ select:focus-visible {
 /* ── AUTO THOUGHT BUBBLE (Task F) ────────────────────────────────────────── */
 .companion-thought {
   position: absolute;
-  top: -70px;
+  top: -55px;
   left: 50%;
   transform: translateX(-50%);
   background: #ffffff;
   border-radius: 12px;
-  padding: 8px 10px;
+  padding: 6px 12px;
   font-family: var(--font-ui, 'DM Sans', sans-serif);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--dk-green, #1B4332);
-  max-width: 160px;
+  max-width: 200px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   opacity: 0;
