@@ -822,12 +822,39 @@ input, select, textarea { font: inherit; }
 .metric-change.positive { color: var(--md-green); }
 .metric-change.negative { color: #C0392B; }
 
+/* ── WHR CALCULATED TILE ──────────────────────────────────────────────────── */
+.metric-card-calculated {
+  background: rgba(27,67,50,0.04);
+}
+.metric-display {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid var(--lt-green);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--dk-green);
+  background: transparent;
+  text-align: center;
+  box-sizing: border-box;
+}
+.whr-range-note {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
 .day-tabs {
   display: flex;
   justify-content: space-between;
   width: 100%;
   gap: 4px;
-  overflow-x: hidden;
+  overflow: visible;
+  padding-top: 6px;
   padding-bottom: 8px;
   margin-bottom: 16px;
 }

@@ -892,7 +892,7 @@ function renderMetrics() {
   if (!container) return;
   const day = STATE.trackerDay;
 
-  container.innerHTML = METRICS.map((label, i) => {
+  const inputTiles = METRICS.map((label, i) => {
     const id   = METRIC_IDS[i];
     const val  = getTrackerVal('metric', day, id);
     const day1 = getTrackerVal('metric', 1, id);
@@ -904,6 +904,9 @@ function renderMetrics() {
       const sign = diff > 0 ? '+' : '';
       changeHtml = `<div class="metric-change ${cls}">${sign}${diff} since Day 1</div>`;
     }
+    // Trigger WHR recalc when waist or hips change
+    const whrUpdate = (id === 'waist' || id === 'hips')
+      ? ` updateWHRDisplay(${day});` : '';
     return `
       <div class="metric-card">
         <div class="metric-label">${label}</div>
@@ -911,10 +914,41 @@ function renderMetrics() {
           type="number" step="0.1" inputmode="decimal"
           placeholder="--"
           value="${val}"
-          onchange="setTrackerVal('metric', ${day}, '${id}', this.value); updateSummaryStats();" />
+          onchange="setTrackerVal('metric', ${day}, '${id}', this.value); updateSummaryStats();${whrUpdate}" />
         ${changeHtml}
       </div>`;
   }).join('');
+
+  container.innerHTML = inputTiles + renderWHRTile(day);
+}
+
+function renderWHRTile(day) {
+  const waist = parseFloat(getTrackerVal('metric', day, 'waist'));
+  const hips  = parseFloat(getTrackerVal('metric', day, 'hips'));
+  const whrVal = (!isNaN(waist) && !isNaN(hips) && hips > 0)
+    ? (waist / hips).toFixed(2)
+    : '--';
+  return `
+    <div class="metric-card metric-card-calculated" id="whr-tile-${day}">
+      <div class="metric-label">Waist-to-Hip</div>
+      <div class="metric-display">${whrVal}</div>
+      <div class="whr-range-note">
+        &lt; 0.85 healthy (women)<br>&lt; 0.90 healthy (men)
+      </div>
+    </div>`;
+}
+
+function updateWHRDisplay(day) {
+  const tile = document.getElementById(`whr-tile-${day}`);
+  if (!tile) return;
+  const waist = parseFloat(getTrackerVal('metric', day, 'waist'));
+  const hips  = parseFloat(getTrackerVal('metric', day, 'hips'));
+  const display = tile.querySelector('.metric-display');
+  if (display) {
+    display.textContent = (!isNaN(waist) && !isNaN(hips) && hips > 0)
+      ? (waist / hips).toFixed(2)
+      : '--';
+  }
 }
 
 function renderWellness() {
@@ -4043,6 +4077,7 @@ window.onSlotChange             = onSlotChange;
 window.onShopGroupChange        = onShopGroupChange;
 window.toggleWater              = toggleWater;
 window.showAutoThought          = showAutoThought;
+window.updateWHRDisplay         = updateWHRDisplay;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
