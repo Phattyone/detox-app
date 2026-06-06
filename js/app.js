@@ -3562,6 +3562,45 @@ const _MOOD_PHRASE_COLORS = {
   thriving: 'var(--amber)',
 };
 
+/* ── TASK F: AUTO THOUGHT BUBBLE — MESSAGES BY MOOD ────────────────────────── */
+const COMPANION_THOUGHTS = {
+  sad: [
+    "I'm feeling a little droopy today...",
+    "Water would really help right now 💧",
+    "Even plants have tough days.",
+    "I believe in you, even when it's hard.",
+    "Rest if you need to. I'll be here.",
+    "Tomorrow is a fresh start 🌱"
+  ],
+  neutral: [
+    "Steady and growing, just like you.",
+    "One step at a time.",
+    "You're doing better than you think.",
+    "Keep going. I'm rooting for you 🌿",
+    "Consistency beats perfection.",
+    "Today counts. Every day counts."
+  ],
+  happy: [
+    "I can feel your energy today! ✨",
+    "Something good is happening here.",
+    "You're making this look easy 🌿",
+    "This is what progress feels like.",
+    "Keep that momentum going!",
+    "Proud of you. Seriously."
+  ],
+  thriving: [
+    "WE ARE THRIVING! 🌺",
+    "This is peak cleanse energy!",
+    "Look at us go! 🌺✨",
+    "You're glowing. I'm glowing. We're glowing.",
+    "Day [X] and absolutely unstoppable.",
+    "This feeling is why we started."
+  ]
+};
+
+let _lastThoughtIndex        = -1;
+let _companionThoughtInterval = null;
+
 function renderCompanionWidget() {
   if (!isLoggedIn()) return;
   const old = document.getElementById('companion-widget');
@@ -3620,6 +3659,7 @@ function renderCompanionWidget() {
 
   const grid = document.querySelector('#page-home .home-desktop-grid');
   if (grid && grid.parentNode) grid.parentNode.insertBefore(w, grid);
+  initCompanionThoughts();
 }
 
 function tapCompanion() {
@@ -3685,6 +3725,69 @@ function updateCompanionDisplay() {
         }).join('')
       : '';
   }
+}
+
+/* ── TASK F: AUTO THOUGHT BUBBLE — LOGIC ───────────────────────────────────── */
+
+function showAutoThought() {
+  // Only fire when user is on the Today page
+  if (STATE.activePage !== 'home') return;
+
+  const right = document.querySelector('#companion-widget .companion-right');
+  if (!right) return;
+
+  // Don't overlap with the tap speech bubble
+  if (right.querySelector('.companion-speech')) return;
+
+  // If a thought is already visible, let it finish — next interval will fire fresh
+  if (right.querySelector('.companion-thought')) return;
+
+  // Get mood and pick a non-repeating message
+  const companion = getCompanion();
+  const mood = companion.mood || 'neutral';
+  const pool = COMPANION_THOUGHTS[mood] || COMPANION_THOUGHTS.neutral;
+
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * pool.length);
+  } while (pool.length > 1 && idx === _lastThoughtIndex);
+  _lastThoughtIndex = idx;
+
+  // Substitute [X] with current cleanse day number
+  let msg = pool[idx];
+  const day = getCleanseDay();
+  if (day && day >= 1 && day <= 7) {
+    msg = msg.replace('[X]', day);
+  } else {
+    msg = msg.replace('Day [X] and', 'Keep going and');
+  }
+
+  // Build thought bubble
+  const bubble = document.createElement('div');
+  bubble.className = 'companion-thought';
+  bubble.textContent = msg;
+  right.insertBefore(bubble, right.firstChild);
+
+  // Fade in — double rAF ensures transition fires after first paint
+  requestAnimationFrame(() => requestAnimationFrame(() => bubble.classList.add('visible')));
+
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    bubble.classList.remove('visible');
+    setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, 450);
+  }, 5000);
+}
+
+function initCompanionThoughts() {
+  // Clear any previous interval (safe on widget re-render)
+  if (_companionThoughtInterval) {
+    clearInterval(_companionThoughtInterval);
+    _companionThoughtInterval = null;
+  }
+  // First thought: 10 seconds after widget loads
+  setTimeout(showAutoThought, 10000);
+  // Recurring: every 45 seconds
+  _companionThoughtInterval = setInterval(showAutoThought, 45000);
 }
 
 /* ── TASK G: DAILY CHALLENGE ───────────────────────────────────────────────── */
@@ -3939,6 +4042,7 @@ window.acknowledgeHealthWarning = acknowledgeHealthWarning;
 window.onSlotChange             = onSlotChange;
 window.onShopGroupChange        = onShopGroupChange;
 window.toggleWater              = toggleWater;
+window.showAutoThought          = showAutoThought;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadState();

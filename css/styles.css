@@ -4577,6 +4577,7 @@ select:focus-visible {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  position: relative; /* anchors .companion-thought absolute positioning */
 }
 .companion-svg-wrap {
   width: 130px;
@@ -4810,6 +4811,41 @@ select:focus-visible {
 }
 
 /* ── COMPANION SPEECH BUBBLE ─────────────────────────────────────────────── */
+/* ── AUTO THOUGHT BUBBLE (Task F) ────────────────────────────────────────── */
+.companion-thought {
+  position: absolute;
+  top: -70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-family: var(--font-ui, 'DM Sans', sans-serif);
+  font-size: 0.78rem;
+  color: var(--dk-green, #1B4332);
+  max-width: 160px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 10;
+  line-height: 1.4;
+  white-space: normal;
+}
+.companion-thought.visible {
+  opacity: 1;
+}
+.companion-thought::after {
+  content: '';
+  position: absolute;
+  bottom: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #ffffff;
+}
+
 .companion-speech {
   background: #fff;
   border-radius: 12px;
