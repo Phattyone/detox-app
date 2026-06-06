@@ -134,19 +134,6 @@ input, select, textarea { font: inherit; }
   background: radial-gradient(circle, rgba(232,129,58,0.08) 0%, transparent 70%);
   border-radius: 50%;
 }
-/* Today page only — amber inner border frame */
-.hero-home::after {
-  content: '';
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
-  border: 1px solid rgba(251,191,36,0.3);
-  border-radius: 4px;
-  pointer-events: none;
-  z-index: 1;
-}
 .hero-label {
   font-family: var(--font-ui);
   font-size: 11px;
@@ -711,10 +698,16 @@ input, select, textarea { font: inherit; }
 .water-tracker {
   background: var(--white);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 12px 16px;
   margin: 20px 0 0;
   border: 1px solid rgba(27,67,50,0.08);
   box-shadow: var(--shadow-sm);
+}
+.water-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 .water-title {
   font-family: var(--font-ui);
@@ -723,7 +716,6 @@ input, select, textarea { font: inherit; }
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--teal);
-  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 6px;
