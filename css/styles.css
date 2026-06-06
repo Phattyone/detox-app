@@ -113,7 +113,7 @@ input, select, textarea { font: inherit; }
 /* ── PAGE HERO ────────────────────────────────────────────────────────────── */
 .page-hero {
   background: linear-gradient(160deg, var(--dk-green) 0%, var(--md-green) 100%);
-  padding: 16px var(--page-pad) 20px; /* Fix 2: compact mobile height */
+  padding: 8px var(--page-pad) 12px; /* Fix 2: compact mobile height */
   position: relative;
   overflow: hidden;
   text-align: center;
@@ -152,7 +152,7 @@ input, select, textarea { font: inherit; }
   margin-bottom: 8px;
 }
 .hero-title-white { color: #FFFFFF; }
-.hero-title-amber  { color: #FBBF24; }
+.hero-title-amber  { color: #FFFFFF; }
 .hero-sub {
   font-family: var(--font-body);
   font-size: 15px;
@@ -1126,7 +1126,7 @@ input, select, textarea { font: inherit; }
 
   /* Bigger hero, centred content (Fix 2 + Fix 3) */
   .page-hero {
-    padding: 20px var(--page-pad) 24px; /* Fix 2: compact desktop */
+    padding: 12px var(--page-pad) 16px; /* Fix 2: compact desktop */
     text-align: center;
   }
   .page-hero::before { width: 320px; height: 320px; top: -60px; right: -60px; }
@@ -4552,7 +4552,7 @@ select:focus-visible {
   gap: 16px;
   background: linear-gradient(135deg, #f0fdf4, #e8f5e9);
   border-radius: 16px;
-  padding: 16px;
+  padding: 12px 16px;
   margin-bottom: 16px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   border: 1px solid rgba(27,67,50,0.08);
@@ -4580,7 +4580,7 @@ select:focus-visible {
 }
 .companion-svg-wrap {
   width: 130px;
-  height: 163px; /* 200 * (130/160) = 162.5 */
+  height: 143px; /* 200 * (130/160) = 162.5, reduced by 20px */
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -4758,13 +4758,13 @@ select:focus-visible {
 /* Mobile: shrink plant column */
 @media (max-width: 480px) {
   .companion-right { width: 100px; }
-  .companion-svg-wrap { width: 100px; height: 125px; }
+  .companion-svg-wrap { width: 100px; height: 105px; }
   .companion-name { font-size: 0.9rem; }
   .stat-val { font-size: 1.1rem; }
 }
 @media (max-width: 380px) {
   .companion-right { width: 88px; }
-  .companion-svg-wrap { width: 88px; height: 110px; }
+  .companion-svg-wrap { width: 88px; height: 90px; }
 }
 
 /* ── BADGE UNLOCK OVERLAY ─────────────────────────────────────────────────── */
