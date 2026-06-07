@@ -43,7 +43,7 @@ const STRIPE_ENDPOINT = 'YOUR_SUPABASE_EDGE_FUNCTION_URL/create-checkout';
 /* ── SUPABASE CLIENT ─────────────────────────────────────────────────────── */
 // Initialized when credentials are set in window.ENV.
 // window.supabase is provided by the CDN script loaded in index.html before auth.js.
-const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
+const sbClient = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
@@ -294,7 +294,7 @@ function _clearSession() {
 // Prevents a flash of unauthenticated content on page refresh before
 // the async getSession() call completes.
 function _syncLoadSession() {
-  if (!supabase || !SUPABASE_URL) return;
+  if (!sbClient || !SUPABASE_URL) return;
   try {
     const projectRef = SUPABASE_URL.replace(/https?:\/\//, '').split('.')[0];
     const raw = localStorage.getItem(`sb-${projectRef}-auth-token`);
@@ -317,11 +317,11 @@ function loadDemoUser()  {}
 /* ── AUTH FUNCTIONS ───────────────────────────────────────────────────────── */
 
 async function signUp(name, email, password) {
-  if (!supabase) throw new Error('Authentication service not configured. Please contact support.');
+  if (!sbClient) throw new Error('Authentication service not configured. Please contact support.');
   if (!name || !email || !password) throw new Error('Please fill in all fields.');
   if (password.length < 8) throw new Error('Password must be at least 8 characters.');
 
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await sbClient.auth.signUp({
     email,
     password,
     options: { data: { full_name: name, plan: 'free' } },
@@ -342,10 +342,10 @@ async function signUp(name, email, password) {
 }
 
 async function signIn(email, password) {
-  if (!supabase) throw new Error('Authentication service not configured. Please contact support.');
+  if (!sbClient) throw new Error('Authentication service not configured. Please contact support.');
   if (!email || !password) throw new Error('Please enter your email and password.');
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
 
   if (error) {
     const msg = error.message.toLowerCase();
@@ -360,7 +360,7 @@ async function signIn(email, password) {
 }
 
 async function signOut() {
-  if (supabase) await supabase.auth.signOut();
+  if (sbClient) await sbClient.auth.signOut();
   _clearSession();
   closeAuthModal();
   updateAuthUI();
@@ -389,10 +389,10 @@ async function signOut() {
 }
 
 async function forgotPassword(email) {
-  if (!supabase) throw new Error('Authentication service not configured. Please contact support.');
+  if (!sbClient) throw new Error('Authentication service not configured. Please contact support.');
   if (!email || !email.includes('@')) throw new Error('Please enter a valid email address.');
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+  const { error } = await sbClient.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin,
   });
 
@@ -412,8 +412,8 @@ async function startCheckout(planId) {
   //   window.location.href = url; // Redirect to Stripe Checkout
   //
   // Until Stripe is wired: store plan in Supabase user metadata (demo upgrade).
-  if (supabase && AUTH.user) {
-    try { await supabase.auth.updateUser({ data: { plan: planId } }); }
+  if (sbClient && AUTH.user) {
+    try { await sbClient.auth.updateUser({ data: { plan: planId } }); }
     catch(e) { console.warn('Could not sync plan to Supabase:', e); }
   }
   AUTH.plan = planId;
@@ -549,8 +549,8 @@ async function handleForgotPassword() {
 async function handleSelectPlan(planId) {
   if (planId === 'free') {
     AUTH.plan = 'free';
-    if (supabase && AUTH.user) {
-      supabase.auth.updateUser({ data: { plan: 'free' } }).catch(() => {});
+    if (sbClient && AUTH.user) {
+      sbClient.auth.updateUser({ data: { plan: 'free' } }).catch(() => {});
     }
     updateAuthUI();
     closeAuthModal();
@@ -813,8 +813,8 @@ async function submitChangePassword() {
   if (!newPw || newPw.length < 8) { showErr('New password must be at least 8 characters.'); return; }
   if (newPw !== confirm) { showErr('New passwords do not match.'); return; }
 
-  if (supabase) {
-    const { error } = await supabase.auth.updateUser({ password: newPw });
+  if (sbClient) {
+    const { error } = await sbClient.auth.updateUser({ password: newPw });
     if (error) { showErr(error.message); return; }
   }
 
@@ -858,8 +858,8 @@ async function submitChangeEmail() {
 
   if (!newEmail || !newEmail.includes('@')) { showErr('Please enter a valid email address.'); return; }
 
-  if (supabase) {
-    const { error } = await supabase.auth.updateUser({ email: newEmail });
+  if (sbClient) {
+    const { error } = await sbClient.auth.updateUser({ email: newEmail });
     if (error) { showErr(error.message); return; }
     // Supabase sends a confirmation email to the new address before switching.
     if (AUTH.user) AUTH.user.email = newEmail;
@@ -906,7 +906,7 @@ function submitDeleteAccount() {
   // Sign out from Supabase (invalidates server-side session).
   // Note: full Supabase account deletion requires a server-side admin API call —
   // implement via a /api/delete-account serverless function when needed.
-  if (supabase) supabase.auth.signOut().catch(() => {});
+  if (sbClient) sbClient.auth.signOut().catch(() => {});
 
   _clearSession();
   closeAuthModal();
@@ -1339,13 +1339,13 @@ function initAuth() {
   }
 
   // Async: validate the cached session with Supabase + register auth-state listener.
-  if (supabase) _initSupabaseSession();
+  if (sbClient) _initSupabaseSession();
 }
 
 // Validates the session server-side and keeps AUTH in sync with Supabase events.
 async function _initSupabaseSession() {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await sbClient.auth.getSession();
     if (session) {
       _applySession(session);
     } else {
@@ -1362,7 +1362,7 @@ async function _initSupabaseSession() {
   }
 
   // Keep AUTH in sync with future token refreshes, cross-tab sign-ins, etc.
-  supabase.auth.onAuthStateChange((event, session) => {
+  sbClient.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
       _applySession(session);
       updateAuthUI();
