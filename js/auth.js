@@ -363,32 +363,42 @@ async function signIn(email, password) {
 }
 
 async function signOut() {
+  // 1. Sign out from Supabase (invalidates server-side session + clears sb-* keys)
   if (sbClient) await sbClient.auth.signOut();
+
+  // 2. Clear all user-specific localStorage data.
+  //    detox_email_list is intentionally preserved — it is marketing capture data,
+  //    not user session data, and should survive across sign-outs.
+  Object.keys(localStorage).forEach(k => {
+    if (
+      (k.startsWith('detox_')        && k !== 'detox_email_list') ||
+      k.startsWith('sb-')            ||  // Supabase session keys (belt-and-suspenders)
+      k.startsWith('photos_day_')    ||  // daily progress photos
+      k.startsWith('firedReminders_')||  // reminder fire-tracking (firedReminders_YYYY-MM-DD)
+      k.startsWith('challengeComplete_') || // daily challenges (challengeComplete_YYYY-MM-DD)
+      k === 'cleanseStartDate'       ||
+      k === 'healthScreeningComplete'||
+      k === 'completedCleanse'       ||
+      k === 'planBannerDismissed'    ||
+      k === 'surveyDismissed'        ||
+      k === 'surveyCompleted'        ||
+      k === 'cleanseSchedule'        ||
+      k === 'scheduleCollapsed'      ||
+      k === 'cleanseCompanion'       ||
+      k === 'thrivingStreak'         ||
+      k === 'thrivingStreakDate'      ||
+      k === 'avoidListCollapsed'
+    ) {
+      localStorage.removeItem(k);
+    }
+  });
+
+  // 3. Reset in-memory AUTH state
   _clearSession();
-  closeAuthModal();
-  updateAuthUI();
 
-  // Re-render all pages back to free/locked state
-  if (typeof renderHome         === 'function') renderHome();
-  if (typeof renderRecipesPage  === 'function') renderRecipesPage();
-  if (typeof renderTracker      === 'function') renderTracker();
-  if (typeof renderShop         === 'function') renderShop('all');
-
-  // Force visual refresh of home page
-  const pageEl = document.getElementById('page-home');
-  if (pageEl) {
-    pageEl.classList.remove('active');
-    void pageEl.offsetHeight;
-    requestAnimationFrame(() => {
-      pageEl.classList.add('active');
-      window.scrollTo(0, 0);
-      STATE.activePage = 'home';
-      // Update nav active state
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      const homeNav = document.getElementById('nav-home');
-      if (homeNav) homeNav.classList.add('active');
-    });
-  }
+  // 4. Full page reload — the most reliable cross-browser way to reset all
+  //    in-memory state (STATE, companion, water tracker, streak, day selection).
+  location.reload();
 }
 
 async function forgotPassword(email) {
