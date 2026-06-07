@@ -725,6 +725,11 @@ function dayHasData(dayNum) {
 //   'future'     day that hasn't happened yet
 //   'normal'     no start date set — all days freely accessible
 function getDayState(dayNum) {
+  // Logged-out users see all tiles in their default inactive state —
+  // cleanseStartDate is preserved in localStorage across sign-out but
+  // should not drive visual state until the user is authenticated.
+  if (!isLoggedIn()) return 'normal';
+
   const todayDayNum  = getCleanseDay();
   const hasStartDate = !!localStorage.getItem('cleanseStartDate');
 

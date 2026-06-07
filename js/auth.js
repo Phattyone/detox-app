@@ -228,6 +228,7 @@ const ACCESS = {
 /* ── AUTH STATE ───────────────────────────────────────────────────────────── */
 const AUTH = {
   user:    null,   // { id, email, name, role }
+  userId:  null,   // Supabase UUID — flat alias for AUTH.user.id, used by sync functions
   plan:    'free', // current plan id: free|basic|premium|seasonal|lifetime|admin|tester
   role:    'user', // user | admin | tester
   loading: false,
@@ -273,6 +274,7 @@ function _applySession(session) {
   const name = meta.full_name || meta.name || u.email;
 
   AUTH.user         = { id: u.id, email: u.email, name, access_token: session.access_token };
+  AUTH.userId       = u.id;   // flat alias — safe to reference without nested access
   AUTH.access_token = session.access_token;
 
   // Role: prefer metadata, fall back to email-match for admin
@@ -288,6 +290,7 @@ function _applySession(session) {
 // Reset AUTH to signed-out state.
 function _clearSession() {
   AUTH.user         = null;
+  AUTH.userId       = null;
   AUTH.plan         = 'free';
   AUTH.role         = 'user';
   AUTH.access_token = null;
