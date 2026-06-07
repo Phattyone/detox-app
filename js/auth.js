@@ -366,12 +366,15 @@ async function signOut() {
   // 1. Sign out from Supabase (invalidates server-side session + clears sb-* keys)
   if (sbClient) await sbClient.auth.signOut();
 
-  // 2. Clear all user-specific localStorage data.
-  //    Intentionally preserved across sign-out (must survive to next login):
-  //      detox_email_list       — marketing capture data, not session data
-  //      healthScreeningComplete — screening should show only once per user;
-  //                                cleared only by the explicit "Reset My Cleanse"
-  //                                action (handleResetCleanse) or account deletion.
+  // 2. Clear session-specific localStorage data (progress, state, badges).
+  //
+  //    Intentionally PRESERVED across sign-out (survive to next login):
+  //      detox_email_list        — marketing capture data, not session data
+  //      healthScreeningComplete — shows only once; cleared by "Reset My Cleanse"
+  //      cleanseStartDate        — user set this; should not re-prompt on every login
+  //      cleanseSchedule         — user-configured reminder schedule
+  //      scheduleCollapsed       — UI preference (scheduler panel open/closed)
+  //      avoidListCollapsed      — UI preference (avoid list open/closed)
   Object.keys(localStorage).forEach(k => {
     if (
       (k.startsWith('detox_')        && k !== 'detox_email_list') ||
@@ -379,17 +382,13 @@ async function signOut() {
       k.startsWith('photos_day_')    ||  // daily progress photos
       k.startsWith('firedReminders_')||  // reminder fire-tracking (firedReminders_YYYY-MM-DD)
       k.startsWith('challengeComplete_') || // daily challenges (challengeComplete_YYYY-MM-DD)
-      k === 'cleanseStartDate'       ||
       k === 'completedCleanse'       ||
       k === 'planBannerDismissed'    ||
       k === 'surveyDismissed'        ||
       k === 'surveyCompleted'        ||
-      k === 'cleanseSchedule'        ||
-      k === 'scheduleCollapsed'      ||
       k === 'cleanseCompanion'       ||
       k === 'thrivingStreak'         ||
-      k === 'thrivingStreakDate'      ||
-      k === 'avoidListCollapsed'
+      k === 'thrivingStreakDate'
     ) {
       localStorage.removeItem(k);
     }
