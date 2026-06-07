@@ -47,6 +47,9 @@ const sbClient = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
+// Export to window so app.js sync functions can reach the client.
+window.sbClient = sbClient;
+
 /* ── MEMBERSHIP TIERS ─────────────────────────────────────────────────────── */
 const PLANS = {
   free: {
@@ -1365,6 +1368,12 @@ async function _initSupabaseSession() {
     const { data: { session } } = await sbClient.auth.getSession();
     if (session) {
       _applySession(session);
+      // Load cloud data and re-render the current page once synced.
+      if (typeof loadCloudData === 'function') {
+        loadCloudData().then(() => {
+          if (typeof window.navigate === 'function') window.navigate('home');
+        }).catch(() => {});
+      }
     } else {
       _clearSession();
     }

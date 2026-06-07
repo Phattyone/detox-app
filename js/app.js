@@ -9,6 +9,10 @@ const STATE = {
   water: {},      // {day: count}
 };
 
+// Guard: suppresses cloud sync writes during loadCloudData() to avoid
+// writing freshly-fetched data straight back to the database.
+let _cloudLoadInProgress = false;
+
 /* ── LOCAL STORAGE HELPERS ────────────────────────────────────────────────── */
 function loadState() {
   try {
@@ -63,6 +67,9 @@ function setSelection(recipeId, slotId, value) {
   const key = `${recipeId}_${slotId}`;
   STATE.selections[key] = value;
   saveSelections();
+  // Sync this day's progress (recipeId pattern: "day1_breakfast")
+  const dm = recipeId && recipeId.match(/^day(\d+)_/);
+  if (dm) syncDailyProgress(_isoDateForDay(parseInt(dm[1])));
 }
 
 function renderSlotResult(recipe, slot, selectedValue) {
@@ -180,6 +187,14 @@ function parseDateLocal(str) {
 function toLocalDateStr(date) {
   const d = date || new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// Returns YYYY-MM-DD ISO date string for a given cleanse day number (1–7).
+// Returns null if cleanseStartDate is not set.
+function _isoDateForDay(dayNum) {
+  const start = localStorage.getItem('cleanseStartDate');
+  if (!start) return null;
+  return toLocalDateStr(new Date(parseDateLocal(start) + (dayNum - 1) * 86400000));
 }
 
 // Returns current cleanse day 1-7 based on stored start date,
@@ -451,6 +466,7 @@ function toggleWater(index) {
   const filling = newVal > current;
   STATE.water[day] = newVal;
   saveWater();
+  syncDailyProgress(_isoDateForDay(day));
   playWaterSound();
   if (filling) awardPoints(POINTS_WATER_GLASS, 'water');
   // Fix 4: pop animation on tapped glass
@@ -1036,6 +1052,8 @@ function selectMood(day, index) {
 // Task 5: save journal entry with timestamp confirmation
 function saveJournalEntry() {
   saveTracker();
+  const _jd = _isoDateForDay(STATE.trackerDay);
+  if (_jd) { syncDailyProgress(_jd); syncBodyMetrics(STATE.trackerDay); }
   const now     = new Date();
   const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   setTrackerVal('journal', STATE.trackerDay, 'lastSaved', timeStr);
@@ -1194,6 +1212,8 @@ function updateSummaryStats() {
 
 function saveDay() {
   saveTracker();
+  const _sd = _isoDateForDay(STATE.trackerDay);
+  if (_sd) { syncDailyProgress(_sd); syncBodyMetrics(STATE.trackerDay); }
   awardPoints(POINTS_JOURNAL_ENTRY, 'journal');
   const toast = document.getElementById('save-toast');
   if (toast) {
@@ -3130,6 +3150,7 @@ function getCompanion() {
 
 function saveCompanion(state) {
   try { localStorage.setItem('cleanseCompanion', JSON.stringify(state)); } catch(e) {}
+  if (!_cloudLoadInProgress) { syncCompanionState(); syncGamification(); }
 }
 
 function _calcMood(pts) {
@@ -3958,6 +3979,7 @@ function renderDailyChallenge() {
 function completeChallenge() {
   const today = toLocalDateStr(new Date());
   localStorage.setItem('challengeComplete_' + today, '1');
+  syncDailyProgress(today);
   awardPoints(POINTS_CHALLENGE_COMPLETE, 'challenge');
   const btn = document.querySelector('#daily-challenge-card .challenge-btn');
   if (btn) { btn.textContent = '✓ Challenge Complete!'; btn.classList.add('completed'); btn.disabled = true; }
@@ -4149,6 +4171,226 @@ window.toggleWater              = toggleWater;
 window.showAutoThought          = showAutoThought;
 window.updateWHRDisplay         = updateWHRDisplay;
 window.handleSecureDownload     = handleSecureDownload;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CLOUD SYNC — Supabase
+   All functions are async and non-blocking. Errors are caught and warned —
+   the UI never crashes from a sync failure.
+
+   Requires: window.sbClient (set in auth.js), isLoggedIn() (auth.js global),
+             AUTH.user.id (auth.js global), STATE / helper fns (this file).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Upserts one day's water, meals, journal, and challenge status to Supabase.
+ * @param {string} date  YYYY-MM-DD local date string for the day to sync.
+ */
+async function syncDailyProgress(date) {
+  const sb = window.sbClient;
+  if (!sb || !isLoggedIn() || !date) return;
+  try {
+    const startStr = localStorage.getItem('cleanseStartDate');
+    if (!startStr) return;
+    const dayNum = Math.round((parseDateLocal(date) - parseDateLocal(startStr)) / 86400000) + 1;
+    if (dayNum < 1 || dayNum > 7) return;
+
+    // Collect tracker entries for this day (metrics, wellness, mood)
+    const mealsData   = {};
+    const journalData = {};
+    Object.entries(STATE.tracker).forEach(([k, v]) => {
+      const segment = parseInt((k.split('_')[1]) || '0');
+      if (k.match(/^(metric|wellness|mood)_/) && segment === dayNum) mealsData[k]   = v;
+      if (k.match(/^journal_/)                && segment === dayNum) journalData[k] = v;
+    });
+
+    // Include recipe-swap selections for this day (key pattern: "day{N}_...")
+    const dayTag = `day${dayNum}_`;
+    const selections = {};
+    Object.entries(STATE.selections).forEach(([k, v]) => {
+      if (k.startsWith(dayTag)) selections[k] = v;
+    });
+    if (Object.keys(selections).length) mealsData.selections = selections;
+
+    const { error } = await sb.from('daily_progress').upsert({
+      user_id:            AUTH.user.id,
+      cleanse_date:       date,
+      day_number:         dayNum,
+      water_glasses:      STATE.water[dayNum] || 0,
+      meals_data:         mealsData,
+      journal_data:       journalData,
+      challenge_complete: localStorage.getItem(`challengeComplete_${date}`) === '1',
+    }, { onConflict: 'user_id,cleanse_date' });
+
+    if (error) console.warn('[sync] daily_progress:', error.message);
+  } catch(e) {
+    console.warn('[sync] syncDailyProgress error:', e);
+  }
+}
+
+/**
+ * Upserts body metrics for a specific tracker day to Supabase.
+ * Photos are kept local only until Supabase Storage is wired in a future session.
+ * @param {number} dayNumber  Cleanse day number 1–7.
+ */
+async function syncBodyMetrics(dayNumber) {
+  const sb = window.sbClient;
+  if (!sb || !isLoggedIn() || !dayNumber) return;
+  try {
+    const metrics = {};
+    const prefix  = `metric_${dayNumber}_`;
+    Object.entries(STATE.tracker).forEach(([k, v]) => {
+      if (k.startsWith(prefix)) metrics[k.slice(prefix.length)] = v;
+    });
+
+    const { error } = await sb.from('body_metrics').upsert({
+      user_id:    AUTH.user.id,
+      day_number: dayNumber,
+      metrics:    metrics,
+      photos:     null, // ROUND 3 PHOTOS: migrate to Supabase Storage in next session
+    }, { onConflict: 'user_id,day_number' });
+
+    if (error) console.warn('[sync] body_metrics:', error.message);
+  } catch(e) {
+    console.warn('[sync] syncBodyMetrics error:', e);
+  }
+}
+
+/**
+ * Upserts the user's points, badges, and streak to Supabase.
+ */
+async function syncGamification() {
+  const sb = window.sbClient;
+  if (!sb || !isLoggedIn()) return;
+  try {
+    const companion = getCompanion();
+    const { error } = await sb.from('gamification').upsert({
+      user_id:     AUTH.user.id,
+      points:      companion.points || 0,
+      badges:      companion.badges || [],
+      streak:      companion.streak || 0,
+      streak_date: companion.lastStreakDate || null,
+    }, { onConflict: 'user_id' });
+
+    if (error) console.warn('[sync] gamification:', error.message);
+  } catch(e) {
+    console.warn('[sync] syncGamification error:', e);
+  }
+}
+
+/**
+ * Upserts the full companion state object to Supabase.
+ */
+async function syncCompanionState() {
+  const sb = window.sbClient;
+  if (!sb || !isLoggedIn()) return;
+  try {
+    const { error } = await sb.from('companion_state').upsert({
+      user_id: AUTH.user.id,
+      state:   getCompanion(),
+    }, { onConflict: 'user_id' });
+
+    if (error) console.warn('[sync] companion_state:', error.message);
+  } catch(e) {
+    console.warn('[sync] syncCompanionState error:', e);
+  }
+}
+
+/**
+ * Fetches all user data from Supabase and restores it to localStorage + STATE.
+ * Called once on login, inside auth.js _initSupabaseSession().
+ * The _cloudLoadInProgress flag prevents saveCompanion() from echoing
+ * freshly-fetched data straight back to the database.
+ */
+async function loadCloudData() {
+  const sb = window.sbClient;
+  if (!sb || !isLoggedIn()) return;
+  _cloudLoadInProgress = true;
+  try {
+    const userId = AUTH.user.id;
+
+    const [
+      { data: dailyRows    },
+      { data: metricRows   },
+      { data: gamRow       },
+      { data: companionRow },
+      { data: cleanseRows  },
+    ] = await Promise.all([
+      sb.from('daily_progress').select('*').eq('user_id', userId),
+      sb.from('body_metrics').select('*').eq('user_id', userId),
+      sb.from('gamification').select('*').eq('user_id', userId).maybeSingle(),
+      sb.from('companion_state').select('*').eq('user_id', userId).maybeSingle(),
+      sb.from('past_cleanses').select('*').eq('user_id', userId),
+    ]);
+
+    // ── Daily progress: water, tracker, journal, challenge completion, selections
+    if (dailyRows && dailyRows.length) {
+      dailyRows.forEach(row => {
+        const day = row.day_number;
+        if (day && row.water_glasses != null) STATE.water[day] = row.water_glasses;
+        if (row.cleanse_date && row.challenge_complete) {
+          localStorage.setItem(`challengeComplete_${row.cleanse_date}`, '1');
+        }
+        const tracker = row.meals_data || {};
+        Object.entries(tracker).forEach(([k, v]) => {
+          if (k !== 'selections' && /^(metric|wellness|mood)_/.test(k)) STATE.tracker[k] = v;
+        });
+        const sel = (tracker.selections) || {};
+        Object.entries(sel).forEach(([k, v]) => { STATE.selections[k] = v; });
+        const journal = row.journal_data || {};
+        Object.entries(journal).forEach(([k, v]) => {
+          if (/^journal_/.test(k)) STATE.tracker[k] = v;
+        });
+      });
+      saveTracker();
+      saveWater();
+      saveSelections();
+    }
+
+    // ── Body metrics
+    if (metricRows && metricRows.length) {
+      metricRows.forEach(row => {
+        const day = row.day_number;
+        Object.entries(row.metrics || {}).forEach(([field, val]) => {
+          STATE.tracker[`metric_${day}_${field}`] = val;
+        });
+        // ROUND 3 PHOTOS: migrate to Supabase Storage in next session
+      });
+      saveTracker();
+    }
+
+    // ── Gamification (partial restore — companion_state wins below if present)
+    if (gamRow) {
+      const companion = getCompanion();
+      if (gamRow.points    != null) companion.points         = gamRow.points;
+      if (gamRow.badges)             companion.badges         = gamRow.badges;
+      if (gamRow.streak    != null) companion.streak          = gamRow.streak;
+      if (gamRow.streak_date)        companion.lastStreakDate  = gamRow.streak_date;
+      localStorage.setItem('cleanseCompanion', JSON.stringify(companion));
+      if (gamRow.streak)       localStorage.setItem('thrivingStreak',     String(gamRow.streak));
+      if (gamRow.streak_date)  localStorage.setItem('thrivingStreakDate', gamRow.streak_date);
+    }
+
+    // ── Companion state (full object — always takes precedence over gamRow partial)
+    if (companionRow && companionRow.state) {
+      localStorage.setItem('cleanseCompanion', JSON.stringify(companionRow.state));
+    }
+
+    // ── Past cleanses
+    if (cleanseRows && cleanseRows.length) {
+      const history = cleanseRows.map(r => ({
+        startDate:   r.start_date,
+        completedAt: r.end_date,
+        ...(r.summary || {}),
+      }));
+      localStorage.setItem('completedCleanse', JSON.stringify(history));
+    }
+
+  } catch(e) {
+    console.warn('[sync] loadCloudData error:', e);
+  } finally {
+    _cloudLoadInProgress = false;
+  }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
