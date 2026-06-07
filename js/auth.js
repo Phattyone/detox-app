@@ -27,9 +27,10 @@
 /* ── CONFIGURATION ────────────────────────────────────────────────────────── */
 
 // ── CONNECT: SUPABASE ──
-// Replace these with your actual Supabase project credentials
-const SUPABASE_URL      = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+// Values are injected at runtime from window.ENV (set in index.html).
+// The anon key is safe to expose in the browser — Row Level Security protects data.
+const SUPABASE_URL      = (window.ENV && window.ENV.SUPABASE_URL)      || '';
+const SUPABASE_ANON_KEY = (window.ENV && window.ENV.SUPABASE_ANON_KEY) || '';
 
 // ── CONNECT: STRIPE ──
 // Replace with your Stripe publishable key (starts with pk_live_ or pk_test_)
@@ -38,6 +39,13 @@ const STRIPE_PUBLISHABLE_KEY = 'YOUR_STRIPE_PUBLISHABLE_KEY';
 // ── CONNECT: STRIPE CHECKOUT ENDPOINT ──
 // Your Supabase Edge Function URL that creates Stripe Checkout sessions
 const STRIPE_ENDPOINT = 'YOUR_SUPABASE_EDGE_FUNCTION_URL/create-checkout';
+
+/* ── SUPABASE CLIENT ─────────────────────────────────────────────────────── */
+// Initialized when credentials are set in window.ENV.
+// window.supabase is provided by the CDN script loaded in index.html before auth.js.
+const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
 
 /* ── MEMBERSHIP TIERS ─────────────────────────────────────────────────────── */
 const PLANS = {
@@ -228,138 +236,132 @@ function isAdmin()        { return AUTH.role === 'admin'; }
 function isTester()       { return AUTH.role === 'tester' || AUTH.role === 'admin'; }
 function canAccess(feat)  { return ACCESS[getUserPlan()]?.includes(feat) ?? false; }
 
-/* ── ADMIN / TESTER CREDENTIALS ────────────────────────────────────────────
-   !! CHANGE THESE BEFORE PUBLISHING !!
-   Admin: full access + admin dashboard
-   Testers: full paid access + feedback tools, no admin panel
-   Tester codes expire when you remove them from TESTER_CODES below.
-   ── CONNECT: SUPABASE ── Move these to Supabase auth with role-based policies
+/* ── ADMIN / TESTER REFERENCE ───────────────────────────────────────────────
+   Admin and tester accounts are managed in the Supabase dashboard.
+   Set user_metadata.role = 'admin' or 'tester' for each account there.
+   ADMIN_EMAIL is also used as a role-detection fallback in _applySession().
+   TESTER_ACCOUNTS is kept for the admin dashboard display list only —
+   passwords are managed in Supabase, not here.
    ─────────────────────────────────────────────────────────────────────────── */
-const ADMIN_EMAIL    = 'phatwil@gmail.com';   // ← Change to your email
-const ADMIN_PASSWORD = 'Admin010406!!';     // ← Change to your password
+const ADMIN_EMAIL = 'phatwil@gmail.com';   // Admin email — manage in Supabase dashboard
 
-// Up to 10 tester slots. Remove an email to revoke access instantly.
+// Tester account reference list (admin dashboard display only).
+// Passwords are set in Supabase. Add or remove entries to update the display list.
 const TESTER_ACCOUNTS = [
-  { email: 'daasmith1981@yahoo.com', password: 'Tester1Pass!', name: 'Tester 1'  },
-  { email: 'k5udy54s@gmail.com', password: 'Tester2Pass!', name: 'Tester 2'  },
-  { email: 'giovahni@mtzins.com', password: 'Tester3Pass!', name: 'Tester 3'  },
-  { email: 'sandrahyacinth74@yahoo.com', password: 'Tester4Pass!', name: 'Tester 4'  },
-  { email: 'faradehunicorns@gmail.com', password: 'Tester5Pass!', name: 'Tester 5'  },
-  { email: 'tester6@example.com', password: 'Tester6Pass!', name: 'Tester 6'  },
-  { email: 'tester7@example.com', password: 'Tester7Pass!', name: 'Tester 7'  },
-  { email: 'tester8@example.com', password: 'Tester8Pass!', name: 'Tester 8'  },
-  { email: 'tester9@example.com', password: 'Tester9Pass!', name: 'Tester 9'  },
-  { email: 'tester10@example.com',password: 'Tester10Pass!',name: 'Tester 10' },
-  // Add or remove testers here. Max 10 active at once.
+  { email: 'daasmith1981@yahoo.com',     name: 'Tester 1'  },
+  { email: 'k5udy54s@gmail.com',         name: 'Tester 2'  },
+  { email: 'giovahni@mtzins.com',        name: 'Tester 3'  },
+  { email: 'sandrahyacinth74@yahoo.com', name: 'Tester 4'  },
+  { email: 'faradehunicorns@gmail.com',  name: 'Tester 5'  },
+  { email: 'tester6@example.com',        name: 'Tester 6'  },
+  { email: 'tester7@example.com',        name: 'Tester 7'  },
+  { email: 'tester8@example.com',        name: 'Tester 8'  },
+  { email: 'tester9@example.com',        name: 'Tester 9'  },
+  { email: 'tester10@example.com',       name: 'Tester 10' },
 ];
 
-/* ── DEMO MODE (remove when backend is connected) ─────────────────────────── */
-// ── CONNECT: SUPABASE ── Replace this entire section with real Supabase calls
-function loadDemoUser() {
-  const saved = localStorage.getItem('detox_demo_user');
-  if (saved) {
-    try {
-      const data = JSON.parse(saved);
-      AUTH.user = data.user;
-      AUTH.plan = data.plan || 'free';
-    } catch(e) {}
-  }
+/* ── SESSION HELPERS ─────────────────────────────────────────────────────── */
+
+// Populate AUTH from a Supabase session object.
+function _applySession(session) {
+  if (!session || !session.user) return;
+  const u    = session.user;
+  const meta = u.user_metadata || {};
+  const name = meta.full_name || meta.name || u.email;
+
+  AUTH.user         = { id: u.id, email: u.email, name, access_token: session.access_token };
+  AUTH.access_token = session.access_token;
+
+  // Role: prefer metadata, fall back to email-match for admin
+  const role = meta.role || (u.email === ADMIN_EMAIL ? 'admin' : 'user');
+  AUTH.role  = role;
+
+  // Plan: role-based overrides take priority
+  if      (role === 'admin')  AUTH.plan = 'admin';
+  else if (role === 'tester') AUTH.plan = 'tester';
+  else                        AUTH.plan = meta.plan || 'free';
 }
 
-function saveDemoUser() {
-  localStorage.setItem('detox_demo_user', JSON.stringify({
-    user: AUTH.user,
-    plan: AUTH.plan,
-  }));
+// Reset AUTH to signed-out state.
+function _clearSession() {
+  AUTH.user         = null;
+  AUTH.plan         = 'free';
+  AUTH.role         = 'user';
+  AUTH.access_token = null;
 }
+
+// Fast synchronous restore from Supabase's own localStorage cache.
+// Prevents a flash of unauthenticated content on page refresh before
+// the async getSession() call completes.
+function _syncLoadSession() {
+  if (!supabase || !SUPABASE_URL) return;
+  try {
+    const projectRef = SUPABASE_URL.replace(/https?:\/\//, '').split('.')[0];
+    const raw = localStorage.getItem(`sb-${projectRef}-auth-token`);
+    if (!raw) return;
+    const stored  = JSON.parse(raw);
+    const session = stored.currentSession || stored;
+    if (session && session.access_token && session.user) {
+      // Only apply if the token hasn't expired (expires_at is Unix seconds)
+      if (!session.expires_at || Date.now() / 1000 < session.expires_at - 60) {
+        _applySession(session);
+      }
+    }
+  } catch(e) { /* ignore malformed cache */ }
+}
+
+// No-op stubs — kept so any surviving call sites don't throw.
+function saveDemoUser() {}
+function loadDemoUser()  {}
 
 /* ── AUTH FUNCTIONS ───────────────────────────────────────────────────────── */
 
 async function signUp(name, email, password) {
-  // ── CONNECT: SUPABASE ──
-  // Replace with: const { data, error } = await supabase.auth.signUp({ email, password })
-  // Then: await supabase.from('profiles').insert({ id: data.user.id, name, plan: 'free' })
-  //
-  // DEMO IMPLEMENTATION:
+  if (!supabase) throw new Error('Authentication service not configured. Please contact support.');
   if (!name || !email || !password) throw new Error('Please fill in all fields.');
   if (password.length < 8) throw new Error('Password must be at least 8 characters.');
-  if (!email.includes('@')) throw new Error('Please enter a valid email address.');
 
-  // Simulate network delay
-  await delay(800);
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { full_name: name, plan: 'free' } },
+  });
 
-  // Check if email already exists (demo)
-  const existing = localStorage.getItem(`detox_user_${email}`);
-  if (existing) throw new Error('An account with this email already exists.');
+  if (error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('user already')) {
+      throw new Error('An account with this email already exists. Please sign in.');
+    }
+    throw new Error(error.message);
+  }
 
-  const userId = 'user_' + Date.now();
-  const userData = { id: userId, email, name, plan: 'free', createdAt: new Date().toISOString() };
-  localStorage.setItem(`detox_user_${email}`, JSON.stringify({ ...userData, password }));
-  localStorage.setItem(`detox_session`, JSON.stringify({ userId, email }));
-
-  AUTH.user = { id: userId, email, name };
-  AUTH.plan = 'free';
-  saveDemoUser();
-  return AUTH.user;
+  // data.session is null when email confirmation is required (Supabase default).
+  // data.session is set when email confirmation is disabled in the Supabase dashboard.
+  if (data.session) _applySession(data.session);
+  return { needsVerification: !data.session, session: data.session };
 }
 
 async function signIn(email, password) {
-  // ── CONNECT: SUPABASE ──
-  // Replace with: const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  // Then fetch profile with role from your profiles table.
-  //
-  // DEMO IMPLEMENTATION:
+  if (!supabase) throw new Error('Authentication service not configured. Please contact support.');
   if (!email || !password) throw new Error('Please enter your email and password.');
-  await delay(600);
 
-  const emailLower = email.toLowerCase().trim();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  // ── Admin check ──────────────────────────────────────────────────────────
-  if (emailLower === ADMIN_EMAIL.toLowerCase()) {
-    if (password !== ADMIN_PASSWORD) throw new Error('Incorrect password.');
-    AUTH.user = { id: 'admin-001', email: ADMIN_EMAIL, name: 'Admin', role: 'admin' };
-    AUTH.plan = 'admin';
-    AUTH.role = 'admin';
-    saveDemoUser();
-    return AUTH.user;
+  if (error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes('email not confirmed') || msg.includes('not confirmed')) {
+      throw new Error('Please verify your email before signing in. Check your inbox for a confirmation link.');
+    }
+    throw new Error('Incorrect email or password. Please try again.');
   }
 
-  // ── Tester check ─────────────────────────────────────────────────────────
-  const testerAccount = TESTER_ACCOUNTS.find(t => t.email.toLowerCase() === emailLower);
-  if (testerAccount) {
-    if (password !== testerAccount.password) throw new Error('Incorrect password.');
-    const testerNum = TESTER_ACCOUNTS.indexOf(testerAccount) + 1;
-    AUTH.user = { id: `tester-${testerNum}`, email: testerAccount.email, name: testerAccount.name, role: 'tester' };
-    AUTH.plan = 'tester';
-    AUTH.role = 'tester';
-    saveDemoUser();
-    return AUTH.user;
-  }
-
-  // ── Regular user ─────────────────────────────────────────────────────────
-  const stored = localStorage.getItem(`detox_user_${emailLower}`);
-  if (!stored) throw new Error('No account found with this email address.');
-
-  const userData = JSON.parse(stored);
-  if (userData.password !== password) throw new Error('Incorrect password.');
-
-  localStorage.setItem('detox_session', JSON.stringify({ userId: userData.id, email: emailLower }));
-  AUTH.user = { id: userData.id, email: emailLower, name: userData.name, role: 'user' };
-  AUTH.plan = userData.plan || 'free';
-  AUTH.role = 'user';
-  saveDemoUser();
+  _applySession(data.session);
   return AUTH.user;
 }
 
 async function signOut() {
-  // ── CONNECT: SUPABASE ──
-  // Replace with: await supabase.auth.signOut()
-  //
-  AUTH.user = null;
-  AUTH.plan = 'free';
-  AUTH.role = 'user';
-  localStorage.removeItem('detox_demo_user');
-  localStorage.removeItem('detox_session');
+  if (supabase) await supabase.auth.signOut();
+  _clearSession();
   closeAuthModal();
   updateAuthUI();
 
@@ -387,12 +389,15 @@ async function signOut() {
 }
 
 async function forgotPassword(email) {
-  // ── CONNECT: SUPABASE ──
-  // Replace with: await supabase.auth.resetPasswordForEmail(email)
-  //
+  if (!supabase) throw new Error('Authentication service not configured. Please contact support.');
   if (!email || !email.includes('@')) throw new Error('Please enter a valid email address.');
-  await delay(800);
-  return true; // Always show success for security (don't reveal if email exists)
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin,
+  });
+
+  if (error) throw new Error(error.message);
+  return true; // Always show success — don't reveal whether the email exists
 }
 
 async function startCheckout(planId) {
@@ -400,25 +405,18 @@ async function startCheckout(planId) {
   // Replace with a call to your Supabase Edge Function:
   //   const res = await fetch(STRIPE_ENDPOINT, {
   //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseSession.access_token}` },
+  //     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AUTH.access_token}` },
   //     body: JSON.stringify({ priceId: PLANS[planId].stripePriceId, userId: AUTH.user.id })
   //   });
   //   const { url } = await res.json();
   //   window.location.href = url; // Redirect to Stripe Checkout
   //
-  // DEMO IMPLEMENTATION:
-  await delay(1000);
-  AUTH.plan = planId;
-
-  // Update stored user plan
-  const stored = localStorage.getItem(`detox_user_${AUTH.user?.email}`);
-  if (stored) {
-    const userData = JSON.parse(stored);
-    userData.plan = planId;
-    localStorage.setItem(`detox_user_${AUTH.user.email}`, JSON.stringify(userData));
+  // Until Stripe is wired: store plan in Supabase user metadata (demo upgrade).
+  if (supabase && AUTH.user) {
+    try { await supabase.auth.updateUser({ data: { plan: planId } }); }
+    catch(e) { console.warn('Could not sync plan to Supabase:', e); }
   }
-  saveDemoUser();
-
+  AUTH.plan = planId;
   showPaymentSuccess(planId);
 }
 
@@ -478,12 +476,26 @@ async function handleSignUp() {
 
   setAuthLoading('btn-signup', true);
   try {
-    await signUp(name, email, password);
-    updateAuthUI();
-    closeAuthModal();
-    navigateAuth('pricing');
-    const modal = document.getElementById('auth-modal');
-    if (modal) modal.classList.add('active');
+    const result = await signUp(name, email, password);
+    if (result && result.needsVerification) {
+      // Supabase requires email confirmation before the account is active.
+      const inner = document.querySelector('#auth-signup .auth-screen-inner');
+      if (inner) {
+        inner.innerHTML = `
+          <div style="font-size:40px;margin-bottom:12px;text-align:center">✉️</div>
+          <h2 class="auth-title">Check your inbox</h2>
+          <p class="auth-sub">We sent a confirmation link to <strong>${email}</strong>.<br>
+          Click the link to verify your account, then sign in.</p>
+          <button class="auth-btn mt-16" onclick="navigateAuth('login')">Go to Sign In</button>`;
+      }
+    } else {
+      // Email confirmation disabled in Supabase — user is immediately active.
+      updateAuthUI();
+      closeAuthModal();
+      navigateAuth('pricing');
+      const modal = document.getElementById('auth-modal');
+      if (modal) modal.classList.add('active');
+    }
   } catch(err) {
     showAuthError('signup', err.message);
   } finally {
@@ -499,11 +511,20 @@ async function handleSignIn() {
   setAuthLoading('btn-login', true);
   try {
     await signIn(email, password);
-    // saveDemoUser() inside signIn() already persisted the session to
-    // localStorage, so the user will still be logged in after the reload.
-    location.reload();
+    // Supabase persists the session to localStorage automatically.
+    // Re-render pages immediately so newly unlocked content appears without a reload.
+    updateAuthUI();
+    closeAuthModal();
+    if (typeof renderHome         === 'function') renderHome();
+    if (typeof renderRecipesPage  === 'function') renderRecipesPage();
+    if (typeof renderTracker      === 'function') renderTracker();
+    if (typeof renderShop         === 'function') renderShop('all');
+    if (typeof renderGuide        === 'function') renderGuide();
+    if (typeof applyContentGating === 'function') applyContentGating();
+    if (typeof renderTesterBadge  === 'function') renderTesterBadge();
   } catch(err) {
     showAuthError('login', err.message);
+  } finally {
     setAuthLoading('btn-login', false);
   }
 }
@@ -528,7 +549,9 @@ async function handleForgotPassword() {
 async function handleSelectPlan(planId) {
   if (planId === 'free') {
     AUTH.plan = 'free';
-    saveDemoUser();
+    if (supabase && AUTH.user) {
+      supabase.auth.updateUser({ data: { plan: 'free' } }).catch(() => {});
+    }
     updateAuthUI();
     closeAuthModal();
     return;
@@ -780,26 +803,19 @@ function showChangePasswordForm() {
 }
 
 async function submitChangePassword() {
-  const current  = document.getElementById('cpw-current')?.value;
-  const newPw    = document.getElementById('cpw-new')?.value;
-  const confirm  = document.getElementById('cpw-confirm')?.value;
-  const errorEl  = document.getElementById('error-change-pw');
+  const newPw   = document.getElementById('cpw-new')?.value;
+  const confirm = document.getElementById('cpw-confirm')?.value;
+  const errorEl = document.getElementById('error-change-pw');
 
   const showErr = msg => { if (errorEl) { errorEl.textContent = msg; errorEl.style.display = 'block'; } };
   if (errorEl) errorEl.style.display = 'none';
 
-  if (!current) { showErr('Please enter your current password.'); return; }
   if (!newPw || newPw.length < 8) { showErr('New password must be at least 8 characters.'); return; }
   if (newPw !== confirm) { showErr('New passwords do not match.'); return; }
 
-  // Verify current password against stored record
-  const stored = localStorage.getItem(`detox_user_${AUTH.user?.email}`);
-  if (stored) {
-    const userData = JSON.parse(stored);
-    if (userData.password !== current) { showErr('Current password is incorrect.'); return; }
-    // -- CONNECT: SUPABASE AUTH -- Replace with supabase.auth.updateUser({ password: newPw }) in Round 3
-    userData.password = newPw;
-    localStorage.setItem(`detox_user_${AUTH.user.email}`, JSON.stringify(userData));
+  if (supabase) {
+    const { error } = await supabase.auth.updateUser({ password: newPw });
+    if (error) { showErr(error.message); return; }
   }
 
   const btn = document.getElementById('btn-change-pw');
@@ -835,30 +851,22 @@ function showChangeEmailForm() {
 
 async function submitChangeEmail() {
   const newEmail = document.getElementById('cemail-new')?.value?.trim();
-  const pw       = document.getElementById('cemail-pw')?.value;
   const errorEl  = document.getElementById('error-change-email');
 
   const showErr = msg => { if (errorEl) { errorEl.textContent = msg; errorEl.style.display = 'block'; } };
   if (errorEl) errorEl.style.display = 'none';
 
   if (!newEmail || !newEmail.includes('@')) { showErr('Please enter a valid email address.'); return; }
-  if (!pw) { showErr('Please enter your current password.'); return; }
 
-  const stored = localStorage.getItem(`detox_user_${AUTH.user?.email}`);
-  if (stored) {
-    const userData = JSON.parse(stored);
-    if (userData.password !== pw) { showErr('Incorrect password.'); return; }
-    // -- CONNECT: SUPABASE AUTH -- Replace with supabase.auth.updateUser({ email: newEmail }) in Round 3
-    const oldEmail = AUTH.user.email;
-    userData.email = newEmail;
-    localStorage.setItem(`detox_user_${newEmail}`, JSON.stringify(userData));
-    localStorage.removeItem(`detox_user_${oldEmail}`);
-    AUTH.user.email = newEmail;
-    saveDemoUser();
+  if (supabase) {
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    if (error) { showErr(error.message); return; }
+    // Supabase sends a confirmation email to the new address before switching.
+    if (AUTH.user) AUTH.user.email = newEmail;
   }
 
   const btn = document.getElementById('btn-change-email');
-  if (btn) { btn.textContent = '✓ Email updated!'; btn.disabled = true; }
+  if (btn) { btn.textContent = '✓ Check your email to confirm'; btn.disabled = true; }
   await delay(1200);
   renderAccountScreen();
 }
@@ -885,19 +893,22 @@ function showDeleteConfirmation() {
 }
 
 function submitDeleteAccount() {
-  // -- CONNECT: SUPABASE AUTH -- Replace with supabase auth deletion in Round 3
-  // Clear ALL app localStorage keys
+  // Clear ALL app + Supabase localStorage keys
   const keysToRemove = Object.keys(localStorage).filter(k =>
-    k.startsWith('detox_') || k === 'cleanseStartDate' || k === 'healthScreeningComplete' ||
+    k.startsWith('detox_') || k.startsWith('sb-') ||
+    k === 'cleanseStartDate' || k === 'healthScreeningComplete' ||
     k === 'planBannerDismissed' || k === 'avoidListCollapsed' ||
     k.startsWith('photos_') || k.startsWith('firedReminders_') || k.startsWith('challengeComplete_') ||
     k.startsWith('completedCleanse')
   );
   keysToRemove.forEach(k => localStorage.removeItem(k));
 
-  AUTH.user = null;
-  AUTH.plan = 'free';
-  AUTH.role = 'user';
+  // Sign out from Supabase (invalidates server-side session).
+  // Note: full Supabase account deletion requires a server-side admin API call —
+  // implement via a /api/delete-account serverless function when needed.
+  if (supabase) supabase.auth.signOut().catch(() => {});
+
+  _clearSession();
   closeAuthModal();
 
   // Show auth modal with deletion message
@@ -1106,7 +1117,7 @@ function renderAdminDashboard() {
     <tr>
       <td style="padding:6px 8px;font-size:12px;color:var(--color-text-primary)">${t.name}</td>
       <td style="padding:6px 8px;font-size:12px;color:var(--color-text-secondary)">${t.email}</td>
-      <td style="padding:6px 8px;font-size:11px;color:var(--color-text-secondary);font-family:monospace">${t.password}</td>
+      <td style="padding:6px 8px;font-size:11px;color:var(--color-text-secondary);font-family:monospace">Supabase</td>
       <td style="padding:6px 8px"><span style="font-size:10px;background:#D8F3DC;color:#1B4332;padding:2px 6px;border-radius:8px;">Active</span></td>
     </tr>`).join('');
 
@@ -1315,13 +1326,58 @@ window.formatExpiry           = formatExpiry;
 
 /* ── INIT ─────────────────────────────────────────────────────────────────── */
 function initAuth() {
-  loadDemoUser();
+  // Sync fast-path: restore cached Supabase session from localStorage.
+  // This populates AUTH before the page renders, preventing a flash of
+  // unauthenticated content on page refresh.
+  _syncLoadSession();
+
   updateAuthUI();
   renderPricingScreen();
   if (isLoggedIn()) {
     renderAccountScreen();
     renderTesterBadge();
   }
+
+  // Async: validate the cached session with Supabase + register auth-state listener.
+  if (supabase) _initSupabaseSession();
+}
+
+// Validates the session server-side and keeps AUTH in sync with Supabase events.
+async function _initSupabaseSession() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      _applySession(session);
+    } else {
+      _clearSession();
+    }
+    updateAuthUI();
+    renderPricingScreen();
+    if (isLoggedIn()) {
+      renderAccountScreen();
+      if (typeof renderTesterBadge === 'function') renderTesterBadge();
+    }
+  } catch(e) {
+    console.error('Supabase session validation error:', e);
+  }
+
+  // Keep AUTH in sync with future token refreshes, cross-tab sign-ins, etc.
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      _applySession(session);
+      updateAuthUI();
+      renderPricingScreen();
+    }
+    if (event === 'SIGNED_OUT') {
+      _clearSession();
+      updateAuthUI();
+    }
+    if (event === 'TOKEN_REFRESHED' && session) {
+      // Keep access_token fresh for /api/get-download-url and other API calls
+      AUTH.access_token = session.access_token;
+      if (AUTH.user) AUTH.user.access_token = session.access_token;
+    }
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

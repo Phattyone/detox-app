@@ -45,4 +45,11 @@ window.APP_CONFIG = {
 
   /* ── PDF.js CDN worker path ───────────────────────────────────────────── */
   PDF_WORKER_SRC: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+
+  /* ── Supabase public config ──────────────────────────────────────────────
+     The anon key is safe to expose in the browser — it is protected by
+     Supabase Row Level Security policies. Real values are set in window.ENV
+     via the inline script in index.html (loaded before this file).         */
+  SUPABASE_URL:      (window.ENV && window.ENV.SUPABASE_URL)      || '',
+  SUPABASE_ANON_KEY: (window.ENV && window.ENV.SUPABASE_ANON_KEY) || '',
 };

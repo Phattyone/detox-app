@@ -643,11 +643,21 @@
 </div>
 
 <!-- ── SCRIPTS ─────────────────────────────────────────────────────────────── -->
+<!-- Public runtime config — paste your Supabase credentials here.
+     The anon key is safe to expose in the browser (protected by Row Level Security). -->
+<script>
+window.ENV = {
+  SUPABASE_URL:      '',  // ← Paste your Supabase project URL  (Settings → API)
+  SUPABASE_ANON_KEY: '',  // ← Paste your Supabase anon key     (Settings → API)
+};
+</script>
 <!-- App config must load first -->
 <script src="js/config.js"></script>
 <!-- API client (requires config.js) -->
 <script src="js/api.js"></script>
-<!-- Auth (requires config.js) -->
+<!-- Supabase JS client v2 (required by auth.js) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Auth (requires config.js + supabase CDN) -->
 <script src="js/auth.js"></script>
 <!-- App logic (requires auth.js, api.js, config.js) -->
 <script src="data/recipes.js"></script>
