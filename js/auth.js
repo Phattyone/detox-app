@@ -367,8 +367,11 @@ async function signOut() {
   if (sbClient) await sbClient.auth.signOut();
 
   // 2. Clear all user-specific localStorage data.
-  //    detox_email_list is intentionally preserved — it is marketing capture data,
-  //    not user session data, and should survive across sign-outs.
+  //    Intentionally preserved across sign-out (must survive to next login):
+  //      detox_email_list       — marketing capture data, not session data
+  //      healthScreeningComplete — screening should show only once per user;
+  //                                cleared only by the explicit "Reset My Cleanse"
+  //                                action (handleResetCleanse) or account deletion.
   Object.keys(localStorage).forEach(k => {
     if (
       (k.startsWith('detox_')        && k !== 'detox_email_list') ||
@@ -377,7 +380,6 @@ async function signOut() {
       k.startsWith('firedReminders_')||  // reminder fire-tracking (firedReminders_YYYY-MM-DD)
       k.startsWith('challengeComplete_') || // daily challenges (challengeComplete_YYYY-MM-DD)
       k === 'cleanseStartDate'       ||
-      k === 'healthScreeningComplete'||
       k === 'completedCleanse'       ||
       k === 'planBannerDismissed'    ||
       k === 'surveyDismissed'        ||
