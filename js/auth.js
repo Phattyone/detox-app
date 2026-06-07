@@ -324,7 +324,10 @@ async function signUp(name, email, password) {
   const { data, error } = await sbClient.auth.signUp({
     email,
     password,
-    options: { data: { full_name: name, plan: 'free' } },
+    options: {
+      emailRedirectTo: 'https://organicdetoxcleanse.com',
+      data: { full_name: name, plan: 'free' },
+    },
   });
 
   if (error) {
@@ -393,7 +396,7 @@ async function forgotPassword(email) {
   if (!email || !email.includes('@')) throw new Error('Please enter a valid email address.');
 
   const { error } = await sbClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin,
+    redirectTo: 'https://organicdetoxcleanse.com',
   });
 
   if (error) throw new Error(error.message);
@@ -1098,6 +1101,9 @@ function showUpgradeModal(message) {
   renderPricingScreen();
   const modal = document.getElementById('auth-modal');
   if (modal) modal.classList.add('active');
+  // Always start pricing modal at the top regardless of previous scroll position
+  const pricingScroll = document.querySelector('.pricing-scroll');
+  if (pricingScroll) pricingScroll.scrollTop = 0;
   const sub = document.querySelector('#auth-pricing .auth-sub');
   if (sub && message) sub.textContent = message;
 }
