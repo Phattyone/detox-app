@@ -2149,6 +2149,71 @@ function acknowledgeHealthWarning() {
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   SECURE DOWNLOAD — Supabase signed URL helpers
+   Fetches a short-lived signed URL from /api/get-download-url and opens it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function getAuthToken() {
+  // ── CONNECT: SUPABASE ──
+  // When Supabase auth is live, replace with:
+  //   const { data: { session } } = await supabase.auth.getSession();
+  //   return session?.access_token || '';
+  // For now, returns whatever access_token Supabase stores on AUTH after sign-in.
+  return AUTH?.access_token || AUTH?.user?.access_token || '';
+}
+
+async function handleSecureDownload(fileKey, btn) {
+  // Step 1 — require login
+  if (!isLoggedIn()) {
+    showUpgradeModal('Sign in to access your downloads.');
+    return;
+  }
+
+  // Step 2 — get JWT
+  const token = getAuthToken();
+
+  // Step 3 — loading state
+  const originalText = btn ? (btn.textContent || btn.innerText) : '';
+  if (btn) { btn.textContent = 'Preparing download…'; btn.disabled = true; }
+
+  try {
+    // Step 4 — fetch signed URL
+    const res = await fetch('/api/get-download-url', {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ file: fileKey }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.url) {
+      throw new Error(data.error || 'Download failed. Please try again.');
+    }
+
+    // Step 5 — open signed URL in new tab
+    window.open(data.url, '_blank');
+
+    // Restore button
+    if (btn) { btn.textContent = originalText; btn.disabled = false; }
+
+  } catch (err) {
+    console.error('Secure download error:', err);
+
+    // Step 6 — show error, then restore after 3 s
+    if (btn) {
+      btn.textContent = 'Download failed. Please try again.';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }, 3000);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    TASKS 6 & 7 — GUIDE PAGE (DOWNLOAD CARD + RESOURCES)
    PDF.js viewer removed (Fix 1) — replaced with direct download card.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -2192,8 +2257,8 @@ function renderGuide() {
         you need to complete the cleanse successfully.
       </div>
       <div class="guide-download-meta">Full program guide · PDF format</div>
-      <a href="${pdfPath}" download="7-Day-Detox-Cleanse-Guide.pdf"
-         class="guide-download-btn">⬇ Download Guide PDF</a>
+      <button class="guide-download-btn"
+        onclick="handleSecureDownload('guide', this)">⬇ Download Guide PDF</button>
       <div class="guide-preview-link-wrap">
         <span class="guide-preview-link" onclick="showGuidePreviewPlaceholder()">
           Preview first few pages
@@ -2245,6 +2310,11 @@ function renderDownloadsHtml() {
   function downloadBtn(href, label, cls) {
     return `<a href="${href}" download class="download-btn ${cls || ''}">${label}</a>`;
   }
+  // Secure download button — fetches a signed URL from /api/get-download-url
+  function secureDownloadBtn(fileKey, label, cls) {
+    return `<button onclick="handleSecureDownload('${fileKey}', this)"
+      class="download-btn ${cls || ''}">${label}</button>`;
+  }
   function lockBtn(msg) {
     return `<div class="download-card-locked">
       🔒 <button class="download-lock-btn" onclick="showUpgradeModal('${msg}')">Unlock</button>
@@ -2257,7 +2327,7 @@ function renderDownloadsHtml() {
       title: 'Interactive Tracking Spreadsheet',
       desc:  'The complete Excel tracker — log metrics, meals, and progress across multiple cleanses.',
       action: hasPremium
-        ? downloadBtn(spreadsheetPath, '⬇ Download Spreadsheet', '')
+        ? secureDownloadBtn('spreadsheet', '⬇ Download Spreadsheet', '')
         : lockBtn('The interactive spreadsheet is included with Premium and Lifetime plans.'),
     },
     {
@@ -2265,7 +2335,7 @@ function renderDownloadsHtml() {
       title: 'Digital Guide PDF',
       desc:  'The full program guide — detox science, supplement guide, meal prep, and daily reference.',
       action: hasPremium
-        ? downloadBtn(guidePdfPath, '⬇ Download Guide', '')
+        ? secureDownloadBtn('guide', '⬇ Download Guide', '')
         : lockBtn('The digital guide PDF is included with Premium and Lifetime plans.'),
     },
     {
@@ -4078,6 +4148,7 @@ window.onShopGroupChange        = onShopGroupChange;
 window.toggleWater              = toggleWater;
 window.showAutoThought          = showAutoThought;
 window.updateWHRDisplay         = updateWHRDisplay;
+window.handleSecureDownload     = handleSecureDownload;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
