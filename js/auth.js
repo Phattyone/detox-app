@@ -1371,16 +1371,12 @@ async function _initSupabaseSession() {
     const { data: { session } } = await sbClient.auth.getSession();
     if (session) {
       _applySession(session);
-      // Load cloud data then immediately re-render the home page so that
-      // water count, companion, day states, and challenge completion are
-      // visible without requiring any manual interaction.
-      // renderHome() calls updateWaterDisplay, updateDayBtnStates,
-      // renderDailyChallenge, and updateCompanionDisplay in one shot.
-      // It only modifies #page-home elements, so it's safe even if the
-      // user has navigated to a different tab before the fetch completes.
+      // Load cloud data then reload the page so all pages, STATE, and UI
+      // components initialize fresh from the restored localStorage data.
+      // Same reliable cross-browser pattern used in signOut().
       if (typeof loadCloudData === 'function') {
         loadCloudData().then(() => {
-          if (typeof renderHome === 'function') renderHome();
+          location.reload();
         }).catch(() => {});
       }
     } else {
