@@ -1371,10 +1371,15 @@ async function _initSupabaseSession() {
     const { data: { session } } = await sbClient.auth.getSession();
     if (session) {
       _applySession(session);
-      // Load cloud data in the background — data is written to localStorage
-      // and STATE so it is available on the next user interaction or navigation.
+      // Load cloud data then re-render the home page so water count,
+      // companion, day states, and challenge completion are visible
+      // immediately. renderHome() already calls renderCompanionWidget()
+      // and updateCompanionDisplay() internally — no extra calls needed.
+      // Does not trigger auth calls or session init.
       if (typeof loadCloudData === 'function') {
-        loadCloudData().catch(() => {});
+        loadCloudData().then(() => {
+          if (typeof renderHome === 'function') renderHome();
+        }).catch(() => {});
       }
     } else {
       _clearSession();

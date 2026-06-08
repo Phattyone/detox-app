@@ -55,6 +55,11 @@ function navigate(pageId) {
   window.scrollTo(0, 0);
   // Re-render plan banner on the newly active page
   if (typeof renderPlanBanner === 'function') renderPlanBanner();
+  // Re-render tracker when navigating to it so cloud-restored data
+  // (metrics, journal, wellness) is visible without a manual interaction.
+  if (pageId === 'tracker' && isLoggedIn()) {
+    if (typeof renderTracker === 'function') renderTracker();
+  }
 }
 
 /* ── RECIPE RENDERING ─────────────────────────────────────────────────────── */
