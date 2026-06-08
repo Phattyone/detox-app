@@ -1371,13 +1371,10 @@ async function _initSupabaseSession() {
     const { data: { session } } = await sbClient.auth.getSession();
     if (session) {
       _applySession(session);
-      // Load cloud data then reload the page so all pages, STATE, and UI
-      // components initialize fresh from the restored localStorage data.
-      // Same reliable cross-browser pattern used in signOut().
+      // Load cloud data in the background — data is written to localStorage
+      // and STATE so it is available on the next user interaction or navigation.
       if (typeof loadCloudData === 'function') {
-        loadCloudData().then(() => {
-          location.reload();
-        }).catch(() => {});
+        loadCloudData().catch(() => {});
       }
     } else {
       _clearSession();
