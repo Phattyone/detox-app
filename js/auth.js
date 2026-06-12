@@ -535,13 +535,24 @@ async function handleSignIn() {
     // Re-render pages immediately so newly unlocked content appears without a reload.
     updateAuthUI();
     closeAuthModal();
-    if (typeof renderHome         === 'function') renderHome();
     if (typeof renderRecipesPage  === 'function') renderRecipesPage();
     if (typeof renderTracker      === 'function') renderTracker();
     if (typeof renderShop         === 'function') renderShop('all');
     if (typeof renderGuide        === 'function') renderGuide();
     if (typeof applyContentGating === 'function') applyContentGating();
     if (typeof renderTesterBadge  === 'function') renderTesterBadge();
+    // Fetch cloud data then re-render home so water, companion, tracker state,
+    // and challenge completion reflect the user's actual saved progress.
+    if (typeof loadCloudData === 'function') {
+      loadCloudData().then(() => {
+        if (typeof loadState    === 'function') loadState();
+        if (typeof renderHome   === 'function') renderHome();
+      }).catch(() => {
+        if (typeof renderHome   === 'function') renderHome();
+      });
+    } else {
+      if (typeof renderHome === 'function') renderHome();
+    }
   } catch(err) {
     showAuthError('login', err.message);
   } finally {
