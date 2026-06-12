@@ -2604,6 +2604,26 @@ async function handleResetCleanse() {
     } catch(e) { console.error('#reset: body_metrics clear failed', e); }
   }
 
+  // Clear companion and points state from localStorage so old values don't
+  // appear during onboarding or on the Today page after reset.
+  localStorage.removeItem('cleanseCompanion');
+  localStorage.removeItem('thrivingStreak');
+  localStorage.removeItem('thrivingStreakDate');
+  localStorage.removeItem('completedCleanse');
+
+  // Reset in-memory STATE so nothing stale leaks into the next render cycle.
+  STATE.water      = {};
+  STATE.tracker    = {};
+  STATE.selections = {};
+
+  // Write a fresh default companion so any display call before the next
+  // full loadState() reads zeroed values rather than the just-removed stale object.
+  localStorage.setItem('cleanseCompanion', JSON.stringify({
+    mood: 'neutral', badges: [], points: 0, streak: 0, growthStage: 1,
+    todayPoints: 0, cleanseCount: 0, allTimePoints: 0,
+    lastPointDate: null, lastStreakDate: null, lastActiveDay: null,
+  }));
+
   // Navigate only after cleanup is confirmed complete.
   // closeAuthModal() queues startOnboardingFlow() via its callback — don't double-fire.
   if (typeof closeAuthModal === 'function') closeAuthModal();
