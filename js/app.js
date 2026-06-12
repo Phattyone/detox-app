@@ -2578,6 +2578,36 @@ function handleResetCleanse() {
   // closeAuthModal() queues startOnboardingFlow() via its callback — don't double-fire
   if (typeof closeAuthModal === 'function') closeAuthModal();
   else startOnboardingFlow();
+
+  // Clear Supabase cloud data so loadCloudData() doesn't restore old state on next login.
+  // Runs async after the local reset to avoid blocking the UI.
+  if (AUTH && AUTH.userId && window.sbClient) {
+    (async () => {
+      try {
+        await window.sbClient.from('gamification').upsert({
+          user_id: AUTH.userId,
+          points: 0,
+          badges: [],
+          streak: 0,
+          streak_date: null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+      } catch(e) { console.error('Reset: gamification clear failed', e); }
+      try {
+        await window.sbClient.from('companion_state').upsert({
+          user_id: AUTH.userId,
+          state: {},
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+      } catch(e) { console.error('Reset: companion_state clear failed', e); }
+      try {
+        await window.sbClient.from('daily_progress').delete().eq('user_id', AUTH.userId);
+      } catch(e) { console.error('Reset: daily_progress clear failed', e); }
+      try {
+        await window.sbClient.from('body_metrics').delete().eq('user_id', AUTH.userId);
+      } catch(e) { console.error('Reset: body_metrics clear failed', e); }
+    })();
+  }
 }
 
 // Light reset: clears only the start date (keeps health screening status)
@@ -3147,7 +3177,7 @@ const COMPANION_DEFAULT = {
   points: 0, todayPoints: 0, lastPointDate: null,
   streak: 0, lastStreakDate: null,
   badges: [], allTimePoints: 0, cleanseCount: 0,
-  mood: 'neutral', growthStage: 1,
+  mood: 'neutral', growthStage: 1, lastActiveDay: null,
 };
 
 const POINTS_WATER_GLASS       = 5;
@@ -3182,8 +3212,12 @@ function awardPoints(amount, reason) {
   const companion = getCompanion();
   const today     = toLocalDateStr(new Date());
 
-  // Reset today's points if it's a new calendar day
+  // Reset todayPoints if the calendar day changed
   if (companion.lastPointDate && companion.lastPointDate !== today) {
+    companion.todayPoints = 0;
+  }
+  // Reset todayPoints if the user switched to a different cleanse day tab
+  if (companion.lastActiveDay !== null && companion.lastActiveDay !== STATE.activeDay) {
     companion.todayPoints = 0;
   }
 
@@ -3191,6 +3225,7 @@ function awardPoints(amount, reason) {
   companion.points        += amount;
   companion.allTimePoints += amount;
   companion.lastPointDate  = today;
+  companion.lastActiveDay  = STATE.activeDay;
 
   // Streak logic
   if (companion.lastStreakDate !== today) {
@@ -3785,7 +3820,7 @@ function renderCompanionWidget() {
           <span class="stat-label">DAY STREAK</span>
         </div>
         <div class="companion-stat companion-stat-gated" id="companion-alltime-wrap">
-          <span class="stat-val" id="companion-alltime">${companion.allTimePoints || 0}</span>
+          <span class="stat-val" id="companion-alltime">${companion.allTimePoints || '--'}</span>
           <span class="stat-label">ALL-TIME PTS</span>
         </div>
       </div>
@@ -3841,9 +3876,17 @@ function updateCompanionDisplay() {
   const companion = getCompanion();
   const today = toLocalDateStr(new Date());
 
-  // New day — reset todayPoints display to 0
+  // New calendar day — reset todayPoints
   if (companion.lastPointDate && companion.lastPointDate !== today) {
     companion.todayPoints = 0;
+    companion.lastActiveDay = STATE.activeDay;
+    companion.mood = _calcMood(0);
+    saveCompanion(companion);
+  }
+  // Day tab switched — reset todayPoints so display reflects the new active day
+  else if (companion.lastActiveDay !== null && companion.lastActiveDay !== STATE.activeDay) {
+    companion.todayPoints = 0;
+    companion.lastActiveDay = STATE.activeDay;
     companion.mood = _calcMood(0);
     saveCompanion(companion);
   }
@@ -3854,7 +3897,7 @@ function updateCompanionDisplay() {
   const el = (id) => document.getElementById(id);
   if (el('companion-points-today')) el('companion-points-today').textContent = companion.todayPoints;
   if (el('companion-streak'))       el('companion-streak').textContent       = companion.streak;
-  if (el('companion-alltime'))      el('companion-alltime').textContent      = companion.allTimePoints || 0;
+  if (el('companion-alltime'))      el('companion-alltime').textContent      = companion.allTimePoints || '--';
   if (el('companion-mood-label')) {
     el('companion-mood-label').textContent = getDayAwareMoodPhrase(companion.mood, getDayContext());
     el('companion-mood-label').style.color = _MOOD_PHRASE_COLORS[companion.mood] || _MOOD_PHRASE_COLORS.neutral;
