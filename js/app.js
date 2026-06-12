@@ -2557,7 +2557,7 @@ function appendCoachMessage(role, text) {
 
 // Full reset: clears start date + health screening → re-runs onboarding flow
 // Used by "Reset My Cleanse" button in account screen
-function handleResetCleanse() {
+async function handleResetCleanse() {
   if (!confirm('Reset your cleanse? This will clear your start date and health screening. Your tracker data and journal entries will be preserved.')) return;
 
   localStorage.removeItem('cleanseStartDate');
@@ -2575,39 +2575,39 @@ function handleResetCleanse() {
   if (banner) banner.style.display = 'none';
   renderTrackerDayTabs();
   showDayToast("Cleanse reset. Let's start fresh!");
-  // closeAuthModal() queues startOnboardingFlow() via its callback — don't double-fire
+
+  // Await Supabase cleanup before navigating so loadCloudData() can't restore
+  // old rows in the race window between reset and startOnboardingFlow().
+  if (AUTH && AUTH.userId && window.sbClient) {
+    try {
+      await window.sbClient.from('gamification').upsert({
+        user_id: AUTH.userId,
+        points: 0,
+        badges: [],
+        streak: 0,
+        streak_date: null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+    } catch(e) { console.error('#reset: gamification clear failed', e); }
+    try {
+      await window.sbClient.from('companion_state').upsert({
+        user_id: AUTH.userId,
+        state: {},
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+    } catch(e) { console.error('#reset: companion_state clear failed', e); }
+    try {
+      await window.sbClient.from('daily_progress').delete().eq('user_id', AUTH.userId);
+    } catch(e) { console.error('#reset: daily_progress clear failed', e); }
+    try {
+      await window.sbClient.from('body_metrics').delete().eq('user_id', AUTH.userId);
+    } catch(e) { console.error('#reset: body_metrics clear failed', e); }
+  }
+
+  // Navigate only after cleanup is confirmed complete.
+  // closeAuthModal() queues startOnboardingFlow() via its callback — don't double-fire.
   if (typeof closeAuthModal === 'function') closeAuthModal();
   else startOnboardingFlow();
-
-  // Clear Supabase cloud data so loadCloudData() doesn't restore old state on next login.
-  // Runs async after the local reset to avoid blocking the UI.
-  if (AUTH && AUTH.userId && window.sbClient) {
-    (async () => {
-      try {
-        await window.sbClient.from('gamification').upsert({
-          user_id: AUTH.userId,
-          points: 0,
-          badges: [],
-          streak: 0,
-          streak_date: null,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
-      } catch(e) { console.error('Reset: gamification clear failed', e); }
-      try {
-        await window.sbClient.from('companion_state').upsert({
-          user_id: AUTH.userId,
-          state: {},
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
-      } catch(e) { console.error('Reset: companion_state clear failed', e); }
-      try {
-        await window.sbClient.from('daily_progress').delete().eq('user_id', AUTH.userId);
-      } catch(e) { console.error('Reset: daily_progress clear failed', e); }
-      try {
-        await window.sbClient.from('body_metrics').delete().eq('user_id', AUTH.userId);
-      } catch(e) { console.error('Reset: body_metrics clear failed', e); }
-    })();
-  }
 }
 
 // Light reset: clears only the start date (keeps health screening status)
