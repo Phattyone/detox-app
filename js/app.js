@@ -382,6 +382,8 @@ function toggleMealCard(mealId) {
 }
 
 function updateDayProgress(day) {
+  // Never switch to a future day — block any call site, not just the onclick handler.
+  if (getDayState(day) === 'future') return;
   STATE.activeDay = day;
   document.querySelectorAll('.day-btn').forEach((btn, i) => {
     btn.classList.toggle('active', i + 1 === day);
@@ -749,6 +751,10 @@ function getDayState(dayNum) {
 // ── Today page day buttons — apply 4-state visuals (Fix 1) ────────────────
 function updateDayBtnStates() {
   const dayBtns = document.querySelectorAll('.day-btn');
+  // FIX 1: When logged out, no day should be highlighted as active.
+  if (!isLoggedIn()) {
+    dayBtns.forEach(btn => btn.classList.remove('active'));
+  }
   dayBtns.forEach((btn, i) => {
     const dayNum = i + 1;
     const state  = getDayState(dayNum);
@@ -791,10 +797,7 @@ function updateDayBtnStates() {
           const msg = unlockDate
             ? `Day ${dayNum} unlocks on ${unlockDate}`
             : `Day ${dayNum} hasn't started yet`;
-          // Switch the view to this day AND show the informational toast.
-          // Without updateDayProgress(), the click appeared to do nothing because
-          // STATE.activeDay and the water display never changed.
-          btn.onclick = () => { updateDayProgress(dayNum); showDayToast(msg); };
+          btn.onclick = () => showDayToast(msg);
         }
         break;
 
@@ -4376,6 +4379,10 @@ async function loadCloudData() {
     if (gamRow) {
       const companion = getCompanion();
       if (gamRow.points    != null) companion.points         = gamRow.points;
+      // FIX 2: allTimePoints must also be seeded from gamRow.points so Today PTS and All-Time PTS
+      // diverge correctly. companion_state will override this below if a full row is present.
+      if (gamRow.points    != null && gamRow.points > (companion.allTimePoints || 0))
+        companion.allTimePoints = gamRow.points;
       if (gamRow.badges)             companion.badges         = gamRow.badges;
       if (gamRow.streak    != null) companion.streak          = gamRow.streak;
       if (gamRow.streak_date)        companion.lastStreakDate  = gamRow.streak_date;
