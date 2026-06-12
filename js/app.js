@@ -791,7 +791,10 @@ function updateDayBtnStates() {
           const msg = unlockDate
             ? `Day ${dayNum} unlocks on ${unlockDate}`
             : `Day ${dayNum} hasn't started yet`;
-          btn.onclick = () => showDayToast(msg);
+          // Switch the view to this day AND show the informational toast.
+          // Without updateDayProgress(), the click appeared to do nothing because
+          // STATE.activeDay and the water display never changed.
+          btn.onclick = () => { updateDayProgress(dayNum); showDayToast(msg); };
         }
         break;
 
@@ -3779,7 +3782,7 @@ function renderCompanionWidget() {
           <span class="stat-label">DAY STREAK</span>
         </div>
         <div class="companion-stat companion-stat-gated" id="companion-alltime-wrap">
-          <span class="stat-val" id="companion-alltime">${canAccess('day1-full') ? companion.allTimePoints : '--'}</span>
+          <span class="stat-val" id="companion-alltime">${companion.allTimePoints || 0}</span>
           <span class="stat-label">ALL-TIME PTS</span>
         </div>
       </div>
@@ -3848,7 +3851,7 @@ function updateCompanionDisplay() {
   const el = (id) => document.getElementById(id);
   if (el('companion-points-today')) el('companion-points-today').textContent = companion.todayPoints;
   if (el('companion-streak'))       el('companion-streak').textContent       = companion.streak;
-  if (el('companion-alltime'))      el('companion-alltime').textContent      = canAccess('day1-full') ? companion.allTimePoints : '--';
+  if (el('companion-alltime'))      el('companion-alltime').textContent      = companion.allTimePoints || 0;
   if (el('companion-mood-label')) {
     el('companion-mood-label').textContent = getDayAwareMoodPhrase(companion.mood, getDayContext());
     el('companion-mood-label').style.color = _MOOD_PHRASE_COLORS[companion.mood] || _MOOD_PHRASE_COLORS.neutral;

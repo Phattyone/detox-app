@@ -403,7 +403,11 @@ async function signOut() {
   // 3. Reset in-memory AUTH state
   _clearSession();
 
-  // 4. Full page reload — the most reliable cross-browser way to reset all
+  // 4. Reset active day so Day 1 is selected on next load (belt-and-suspenders
+  //    alongside the reload below — guards any path that skips the reload).
+  if (typeof STATE !== 'undefined') STATE.activeDay = 1;
+
+  // 5. Full page reload — the most reliable cross-browser way to reset all
   //    in-memory state (STATE, companion, water tracker, streak, day selection).
   location.reload();
 }
