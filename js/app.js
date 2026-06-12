@@ -55,6 +55,12 @@ function navigate(pageId) {
   window.scrollTo(0, 0);
   // Re-render plan banner on the newly active page
   if (typeof renderPlanBanner === 'function') renderPlanBanner();
+  // Re-render tracker with plan gating applied so cloud-restored entries
+  // are visible while free users still see only their allowed content.
+  if (pageId === 'tracker' && isLoggedIn()) {
+    if (typeof renderTracker === 'function') renderTracker();
+    if (typeof gateTracker  === 'function') gateTracker();
+  }
 }
 
 /* ── RECIPE RENDERING ─────────────────────────────────────────────────────── */

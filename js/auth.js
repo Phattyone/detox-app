@@ -1378,6 +1378,8 @@ async function _initSupabaseSession() {
       // Does not trigger auth calls or session init.
       if (typeof loadCloudData === 'function') {
         loadCloudData().then(() => {
+          // Re-read STATE from localStorage so water/tracker reflect cloud data.
+          if (typeof loadState === 'function') loadState();
           if (typeof renderHome === 'function') renderHome();
         }).catch(() => {});
       }
