@@ -978,24 +978,28 @@ async function submitDeleteAccount() {
 
   localStorage.clear();
   _clearSession();
+  // Explicitly null AUTH so any render triggered below sees no logged-in user.
+  // _clearSession() already does this; these are belt-and-suspenders to ensure
+  // startOnboardingFlow()'s !AUTH.userId guard fires during the render chain.
+  AUTH.userId       = null;
+  AUTH.user         = null;
+  AUTH.access_token = null;
 
-  // Reset in-memory STATE and re-render the home page to clear the water
-  // display and any other stale UI immediately after deletion.
+  // Reset in-memory STATE.
   if (typeof STATE !== 'undefined') {
     STATE.water      = {};
     STATE.tracker    = {};
     STATE.selections = {};
   }
-  if (typeof renderHome === 'function') renderHome();
 
-  // Write a fresh zeroed companion so the widget doesn't display stale points.
-  const freshCompanion = {
+  // Write fresh companion BEFORE any render call so no stale points flash.
+  localStorage.setItem('cleanseCompanion', JSON.stringify({
     mood: 'neutral', badges: [], points: 0, streak: 0, growthStage: 1,
     todayPoints: 0, cleanseCount: 0, allTimePoints: 0,
     lastPointDate: null, lastStreakDate: null, lastActiveDay: null,
-  };
-  localStorage.setItem('cleanseCompanion', JSON.stringify(freshCompanion));
+  }));
 
+  if (typeof renderHome             === 'function') renderHome();
   if (typeof renderTracker          === 'function') renderTracker();
   if (typeof gateTracker            === 'function') gateTracker();
   if (typeof renderCompanionWidget  === 'function') renderCompanionWidget();
