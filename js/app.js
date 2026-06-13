@@ -292,12 +292,6 @@ function _getHealthStatus() {
 
   // Check user-specific key first
   if (userKey && localStorage.getItem(userKey)) {
-    console.log('[debug] _getHealthStatus:', {
-      authUserId: AUTH.userId,
-      resolvedUserId: userId,
-      userKey: 'true',
-      legacyKey: localStorage.getItem('healthScreeningComplete'),
-    });
     return true;
   }
 
@@ -307,22 +301,19 @@ function _getHealthStatus() {
   if (legacy && AUTH.userId) {
     localStorage.setItem('healthScreeningComplete_' + AUTH.userId, 'true');
     localStorage.removeItem('healthScreeningComplete');
-    console.log('[debug] _getHealthStatus: migrated legacy key for', AUTH.userId);
     return true;
   }
 
-  console.log('[debug] _getHealthStatus:', {
-    authUserId: AUTH.userId,
-    resolvedUserId: userId,
-    userKey: null,
-    legacyKey: legacy,
-  });
   return legacy || null;
 }
 
 // Call startOnboardingFlow() after any auth event; it handles the sequence.
 
 function startOnboardingFlow() {
+  // Don't run before the async session resolves — AUTH.userId will be null on
+  // page load until _initSupabaseSession completes. The explicit call inside
+  // loadCloudData().then() picks it up once the session is confirmed.
+  if (!AUTH.userId) return;
   if (!isLoggedIn()) return;
 
   // Don't interrupt if auth modal is open
@@ -2138,7 +2129,6 @@ const HEALTH_QUESTIONS = [
 ];
 
 function maybeShowHealthScreening() {
-  console.log('[debug] maybeShowHealthScreening called, isComplete:', _getHealthStatus());
   if (_getHealthStatus()) return; // done already
   // Don't stack with auth modal or date picker
   const authModal  = document.getElementById('auth-modal');
