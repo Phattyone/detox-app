@@ -277,14 +277,7 @@ function _applySession(session) {
   AUTH.userId       = u.id;   // flat alias — safe to reference without nested access
   AUTH.access_token = session.access_token;
 
-  // If the stored cleanse start date belongs to a different user, clear it so
-  // a new account on the same device always starts fresh.
-  const storedUserId = localStorage.getItem('cleanseUserId');
-  if (storedUserId && storedUserId !== AUTH.userId) {
-    localStorage.removeItem('cleanseStartDate');
-    localStorage.removeItem('cleanseUserId');
-    localStorage.removeItem('healthScreeningComplete');
-  }
+  _validateCleanseOwner();
 
   // Role: prefer metadata, fall back to email-match for admin
   const role = meta.role || (u.email === ADMIN_EMAIL ? 'admin' : 'user');
@@ -303,6 +296,20 @@ function _clearSession() {
   AUTH.plan         = 'free';
   AUTH.role         = 'user';
   AUTH.access_token = null;
+}
+
+// Clear cleanseStartDate and healthScreeningComplete if they were written by
+// a different user. Called after AUTH.userId is set so the comparison is valid.
+// Returns false when a mismatch is detected, true otherwise.
+function _validateCleanseOwner() {
+  const storedUserId = localStorage.getItem('cleanseUserId');
+  if (storedUserId && storedUserId !== AUTH.userId) {
+    localStorage.removeItem('cleanseStartDate');
+    localStorage.removeItem('cleanseUserId');
+    localStorage.removeItem('healthScreeningComplete');
+    return false;
+  }
+  return true;
 }
 
 // Fast synchronous restore from Supabase's own localStorage cache.
@@ -546,6 +553,7 @@ async function handleSignIn() {
   setAuthLoading('btn-login', true);
   try {
     await signIn(email, password);
+    _validateCleanseOwner();
     // Supabase persists the session to localStorage automatically.
     // Re-render pages immediately so newly unlocked content appears without a reload.
     updateAuthUI();
@@ -1439,6 +1447,7 @@ async function _initSupabaseSession() {
     const { data: { session } } = await sbClient.auth.getSession();
     if (session) {
       _applySession(session);
+      _validateCleanseOwner();
       // Load cloud data then re-render the home page so water count,
       // companion, day states, and challenge completion are visible
       // immediately. renderHome() already calls renderCompanionWidget()
