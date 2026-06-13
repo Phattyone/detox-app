@@ -1471,8 +1471,15 @@ async function _initSupabaseSession() {
   sbClient.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
       _applySession(session);
+      _validateCleanseOwner();
       updateAuthUI();
       renderPricingScreen();
+      // New or reset user landing back after email verification — start onboarding.
+      // Returning users have healthScreeningComplete set so this is a no-op for them.
+      const needsOnboarding = !localStorage.getItem('healthScreeningComplete');
+      if (needsOnboarding && typeof startOnboardingFlow === 'function') {
+        setTimeout(startOnboardingFlow, 350);
+      }
     }
     if (event === 'SIGNED_OUT') {
       _clearSession();
