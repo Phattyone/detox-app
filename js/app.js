@@ -273,6 +273,24 @@ function closeDatePicker() {
 
 /* ── ONBOARDING FLOW (Fix 1) ──────────────────────────────────────────────── */
 // Correct sequence: login → health screening → date picker → app
+// Returns the localStorage key to use for health screening completion.
+// User-specific when logged in so each account on the device has its own state.
+function _healthKey() {
+  return (typeof AUTH !== 'undefined' && AUTH.userId)
+    ? 'healthScreeningComplete_' + AUTH.userId
+    : 'healthScreeningComplete';
+}
+
+// Returns the stored health screening value, checking the user-specific key
+// first and falling back to the legacy unprefixed key for existing users.
+function _getHealthStatus() {
+  if (typeof AUTH !== 'undefined' && AUTH.userId) {
+    return localStorage.getItem('healthScreeningComplete_' + AUTH.userId)
+        || localStorage.getItem('healthScreeningComplete');
+  }
+  return localStorage.getItem('healthScreeningComplete');
+}
+
 // Call startOnboardingFlow() after any auth event; it handles the sequence.
 
 function startOnboardingFlow() {
@@ -289,7 +307,7 @@ function startOnboardingFlow() {
   if (datePicker && datePicker.style.display !== 'none') return;
 
   // Step 1: Health screening (must complete before anything else)
-  if (!localStorage.getItem('healthScreeningComplete')) {
+  if (!_getHealthStatus()) {
     setTimeout(showHealthScreening, 450);
     return;
   }
@@ -301,7 +319,7 @@ function startOnboardingFlow() {
   }
 
   // Both done — restore health banner if previously warned
-  if (localStorage.getItem('healthScreeningComplete') === 'warned') {
+  if (_getHealthStatus() === 'warned') {
     const banner = document.getElementById('health-check-banner');
     if (banner && banner.style.display === 'none') banner.style.display = 'flex';
   }
@@ -310,7 +328,7 @@ function startOnboardingFlow() {
 // Legacy wrapper kept for backward-compat calls in auth.js
 function maybeShowDatePicker() {
   if (!isLoggedIn()) return;
-  if (!localStorage.getItem('healthScreeningComplete')) return; // health first
+  if (!_getHealthStatus()) return; // health first
   if (localStorage.getItem('cleanseStartDate')) return;
   const modal = document.getElementById('auth-modal');
   if (modal && modal.classList.contains('active')) return;
@@ -2091,7 +2109,7 @@ const HEALTH_QUESTIONS = [
 ];
 
 function maybeShowHealthScreening() {
-  if (localStorage.getItem('healthScreeningComplete')) return; // done already
+  if (_getHealthStatus()) return; // done already
   // Don't stack with auth modal or date picker
   const authModal  = document.getElementById('auth-modal');
   const datePicker = document.getElementById('date-picker-overlay');
@@ -2101,7 +2119,7 @@ function maybeShowHealthScreening() {
 }
 
 function showHealthScreening() {
-  if (localStorage.getItem('healthScreeningComplete')) return;
+  if (_getHealthStatus()) return;
 
   const overlay = document.getElementById('health-screening-overlay');
   const content = document.getElementById('health-screening-content');
@@ -2172,7 +2190,7 @@ function setHealthAnswer(index) {
 }
 
 function submitHealthScreening() {
-  localStorage.setItem('healthScreeningComplete', 'true');
+  localStorage.setItem(_healthKey(), 'true');
   const overlay = document.getElementById('health-screening-overlay');
   if (overlay) overlay.style.display = 'none';
   // Proceed to date picker if not yet set (Fix 1: health → date picker)
@@ -2180,7 +2198,7 @@ function submitHealthScreening() {
 }
 
 function acknowledgeHealthWarning() {
-  localStorage.setItem('healthScreeningComplete', 'warned');
+  localStorage.setItem(_healthKey(), 'warned');
   const overlay = document.getElementById('health-screening-overlay');
   if (overlay) overlay.style.display = 'none';
   const banner = document.getElementById('health-check-banner');
@@ -2566,7 +2584,8 @@ async function handleResetCleanse() {
   if (!confirm('Reset your cleanse? This will clear your start date and health screening. Your tracker data and journal entries will be preserved.')) return;
 
   localStorage.removeItem('cleanseStartDate');
-  localStorage.removeItem('healthScreeningComplete');
+  localStorage.removeItem(_healthKey());
+  localStorage.removeItem('healthScreeningComplete'); // clear legacy key too
   localStorage.removeItem('avoidListCollapsed');
 
   // Clear all per-cycle keys with these prefixes
@@ -4511,7 +4530,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof renderTesterBadge === 'function') renderTesterBadge();
 
   // Restore health banner if user previously acknowledged a warning
-  if (localStorage.getItem('healthScreeningComplete') === 'warned') {
+  if (_getHealthStatus() === 'warned') {
     const banner = document.getElementById('health-check-banner');
     if (banner) banner.style.display = 'flex';
   }

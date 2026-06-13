@@ -298,15 +298,15 @@ function _clearSession() {
   AUTH.access_token = null;
 }
 
-// Clear cleanseStartDate and healthScreeningComplete if they were written by
-// a different user. Called after AUTH.userId is set so the comparison is valid.
+// Clear cleanseStartDate if it was written by a different user.
+// healthScreeningComplete is now stored per user ID so it is not touched here.
+// Called after AUTH.userId is set so the comparison is valid.
 // Returns false when a mismatch is detected, true otherwise.
 function _validateCleanseOwner() {
   const storedUserId = localStorage.getItem('cleanseUserId');
   if (storedUserId && storedUserId !== AUTH.userId) {
     localStorage.removeItem('cleanseStartDate');
     localStorage.removeItem('cleanseUserId');
-    localStorage.removeItem('healthScreeningComplete');
     return false;
   }
   return true;
@@ -1475,8 +1475,10 @@ async function _initSupabaseSession() {
       updateAuthUI();
       renderPricingScreen();
       // New or reset user landing back after email verification — start onboarding.
-      // Returning users have healthScreeningComplete set so this is a no-op for them.
-      const needsOnboarding = !localStorage.getItem('healthScreeningComplete');
+      // Check the user-specific key first, fall back to the legacy key for
+      // existing users who completed screening before the per-user migration.
+      const hKey = AUTH.userId ? 'healthScreeningComplete_' + AUTH.userId : 'healthScreeningComplete';
+      const needsOnboarding = !localStorage.getItem(hKey) && !localStorage.getItem('healthScreeningComplete');
       if (needsOnboarding && typeof startOnboardingFlow === 'function') {
         setTimeout(startOnboardingFlow, 350);
       }
