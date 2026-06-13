@@ -530,7 +530,13 @@ async function handleSignUp() {
       // Email confirmation disabled in Supabase — user is immediately active.
       updateAuthUI();
       closeAuthModal();
-      setTimeout(startOnboardingFlow, 350);
+      if (typeof loadCloudData === 'function') {
+        loadCloudData().then(() => {
+          if (typeof startOnboardingFlow === 'function') startOnboardingFlow();
+        });
+      } else {
+        setTimeout(startOnboardingFlow, 350);
+      }
     }
   } catch(err) {
     showAuthError('signup', err.message);
