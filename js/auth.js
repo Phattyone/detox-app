@@ -420,6 +420,7 @@ async function signOut() {
 
   // 3. Reset in-memory AUTH state
   _clearSession();
+  if (typeof _cloudDataLoaded !== 'undefined') _cloudDataLoaded = false;
 
   // 4. Reset active day so Day 1 is selected on next load (belt-and-suspenders
   //    alongside the reload below — guards any path that skips the reload).

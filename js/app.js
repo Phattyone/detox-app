@@ -13,6 +13,12 @@ const STATE = {
 // writing freshly-fetched data straight back to the database.
 let _cloudLoadInProgress = false;
 
+// Guard: prevents startOnboardingFlow() from firing before the first
+// loadCloudData() completes. Without this, the SIGNED_IN auth event
+// could trigger onboarding before profile data (health screening,
+// cleanse start date) has been restored from Supabase.
+let _cloudDataLoaded = false;
+
 /* ── LOCAL STORAGE HELPERS ────────────────────────────────────────────────── */
 function loadState() {
   try {
@@ -246,6 +252,12 @@ function setCleanseStart(mode) {
   // doesn't inherit it (validated in _applySession on next login).
   if (typeof AUTH !== 'undefined' && AUTH.userId) {
     localStorage.setItem('cleanseUserId', AUTH.userId);
+    if (window.sbClient) {
+      window.sbClient.from('profiles')
+        .update({ cleanse_start_date: dateStr })
+        .eq('id', AUTH.userId)
+        .then(() => {}).catch(e => console.error('[sync] cleanse start date sync failed:', e));
+    }
   }
   closeDatePicker();
   const day = getCleanseDay() || 1;
@@ -314,6 +326,9 @@ function startOnboardingFlow() {
   // page load until _initSupabaseSession completes. The explicit call inside
   // loadCloudData().then() picks it up once the session is confirmed.
   if (!AUTH.userId) return;
+  // Don't run before cloud data is restored — health screening status and
+  // cleanse start date must be back in localStorage before we check them.
+  if (!_cloudDataLoaded) return;
   if (!isLoggedIn()) return;
 
   // Don't interrupt if auth modal is open
@@ -2654,9 +2669,9 @@ async function handleResetCleanse() {
     } catch(e) { console.error('#reset: body_metrics clear failed', e); }
     try {
       await window.sbClient.from('profiles')
-        .update({ health_screening_complete: false })
+        .update({ health_screening_complete: false, cleanse_start_date: null })
         .eq('id', AUTH.userId);
-    } catch(e) { console.error('#reset: profiles health_screening_complete clear failed', e); }
+    } catch(e) { console.error('#reset: profiles clear failed', e); }
   }
 
   // Clear companion and points state from localStorage so old values don't
@@ -4455,7 +4470,7 @@ async function loadCloudData() {
       sb.from('gamification').select('*').eq('user_id', userId).maybeSingle(),
       sb.from('companion_state').select('*').eq('user_id', userId).maybeSingle(),
       sb.from('past_cleanses').select('*').eq('user_id', userId),
-      sb.from('profiles').select('health_screening_complete').eq('id', userId).maybeSingle(),
+      sb.from('profiles').select('health_screening_complete, cleanse_start_date').eq('id', userId).maybeSingle(),
     ]);
 
     // ── Daily progress: water, tracker, journal, challenge completion, selections
@@ -4529,6 +4544,14 @@ async function loadCloudData() {
     if (profileRow?.health_screening_complete) {
       localStorage.setItem(_healthKey(), 'true');
     }
+
+    // ── Cleanse start date (restores across devices / after localStorage clear)
+    if (profileRow?.cleanse_start_date) {
+      localStorage.setItem('cleanseStartDate', profileRow.cleanse_start_date);
+      localStorage.setItem('cleanseUserId', userId);
+    }
+
+    _cloudDataLoaded = true;
 
   } catch(e) {
     console.warn('[sync] loadCloudData error:', e);
