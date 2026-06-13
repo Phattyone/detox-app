@@ -974,11 +974,6 @@ async function submitDeleteAccount() {
   // Server confirmed deletion — wipe all local state.
   console.log('delete success, clearing local state');
 
-  // Sign out the Supabase client session first so the onAuthStateChange SIGNED_OUT
-  // event fires now (while we still control the flow) rather than racing with
-  // our redirect timeout below.
-  if (sbClient) await sbClient.auth.signOut().catch(() => {});
-
   localStorage.clear();
   _clearSession();
 
