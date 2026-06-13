@@ -529,9 +529,7 @@ async function handleSignUp() {
       // Email confirmation disabled in Supabase — user is immediately active.
       updateAuthUI();
       closeAuthModal();
-      navigateAuth('pricing');
-      const modal = document.getElementById('auth-modal');
-      if (modal) modal.classList.add('active');
+      setTimeout(startOnboardingFlow, 350);
     }
   } catch(err) {
     showAuthError('signup', err.message);
