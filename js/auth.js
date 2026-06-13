@@ -927,26 +927,51 @@ function showDeleteConfirmation() {
     </div>`;
 }
 
-function submitDeleteAccount() {
-  // Clear ALL app + Supabase localStorage keys
-  const keysToRemove = Object.keys(localStorage).filter(k =>
-    k.startsWith('detox_') || k.startsWith('sb-') ||
-    k === 'cleanseStartDate' || k === 'healthScreeningComplete' ||
-    k === 'planBannerDismissed' || k === 'avoidListCollapsed' ||
-    k.startsWith('photos_') || k.startsWith('firedReminders_') || k.startsWith('challengeComplete_') ||
-    k.startsWith('completedCleanse')
-  );
-  keysToRemove.forEach(k => localStorage.removeItem(k));
+async function submitDeleteAccount() {
+  const token = AUTH.access_token;
+  if (!token) return;
 
-  // Sign out from Supabase (invalidates server-side session).
-  // Note: full Supabase account deletion requires a server-side admin API call —
-  // implement via a /api/delete-account serverless function when needed.
-  if (sbClient) sbClient.auth.signOut().catch(() => {});
+  // Disable the button and show a loading state while the request is in flight.
+  const btn = document.getElementById('btn-delete-account');
+  if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
 
+  let ok = false;
+  try {
+    const res = await fetch('/api/delete-account', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      const msg  = body.error || 'Account deletion failed. Please try again.';
+      // Restore button so the user can retry.
+      if (btn) { btn.disabled = false; btn.textContent = 'Permanently Delete Account'; }
+      const sub = document.querySelector('#auth-delete .auth-sub, #auth-delete .delete-warning');
+      if (sub) sub.textContent = msg;
+      return;
+    }
+
+    ok = true;
+  } catch(e) {
+    console.error('submitDeleteAccount fetch error:', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'Permanently Delete Account'; }
+    const sub = document.querySelector('#auth-delete .auth-sub, #auth-delete .delete-warning');
+    if (sub) sub.textContent = 'Network error. Please check your connection and try again.';
+    return;
+  }
+
+  if (!ok) return;
+
+  // Server confirmed deletion — wipe all local state.
+  localStorage.clear();
   _clearSession();
   closeAuthModal();
 
-  // Show auth modal with deletion message
+  // Show confirmation and redirect to login.
   setTimeout(() => {
     navigateAuth('login');
     const modal = document.getElementById('auth-modal');
