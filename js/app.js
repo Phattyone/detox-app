@@ -2211,6 +2211,12 @@ function setHealthAnswer(index) {
 
 function submitHealthScreening() {
   localStorage.setItem(_healthKey(), 'true');
+  if (window.sbClient && AUTH.userId) {
+    window.sbClient.from('profiles')
+      .update({ health_screening_complete: true })
+      .eq('id', AUTH.userId)
+      .then(() => {}).catch(e => console.error('[sync] health screening sync failed:', e));
+  }
   const overlay = document.getElementById('health-screening-overlay');
   if (overlay) overlay.style.display = 'none';
   // Proceed to date picker if not yet set (Fix 1: health → date picker)
@@ -2646,6 +2652,11 @@ async function handleResetCleanse() {
     try {
       await window.sbClient.from('body_metrics').delete().eq('user_id', AUTH.userId);
     } catch(e) { console.error('#reset: body_metrics clear failed', e); }
+    try {
+      await window.sbClient.from('profiles')
+        .update({ health_screening_complete: false })
+        .eq('id', AUTH.userId);
+    } catch(e) { console.error('#reset: profiles health_screening_complete clear failed', e); }
   }
 
   // Clear companion and points state from localStorage so old values don't
@@ -4437,12 +4448,14 @@ async function loadCloudData() {
       { data: gamRow       },
       { data: companionRow },
       { data: cleanseRows  },
+      { data: profileRow   },
     ] = await Promise.all([
       sb.from('daily_progress').select('*').eq('user_id', userId),
       sb.from('body_metrics').select('*').eq('user_id', userId),
       sb.from('gamification').select('*').eq('user_id', userId).maybeSingle(),
       sb.from('companion_state').select('*').eq('user_id', userId).maybeSingle(),
       sb.from('past_cleanses').select('*').eq('user_id', userId),
+      sb.from('profiles').select('health_screening_complete').eq('id', userId).maybeSingle(),
     ]);
 
     // ── Daily progress: water, tracker, journal, challenge completion, selections
@@ -4510,6 +4523,11 @@ async function loadCloudData() {
         ...(r.summary || {}),
       }));
       localStorage.setItem('completedCleanse', JSON.stringify(history));
+    }
+
+    // ── Health screening status
+    if (profileRow?.health_screening_complete) {
+      localStorage.setItem(_healthKey(), 'true');
     }
 
   } catch(e) {
