@@ -935,7 +935,6 @@ async function submitDeleteAccount() {
   const btn = document.getElementById('btn-delete-account');
   if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
 
-  let ok = false;
   try {
     const res = await fetch('/api/delete-account', {
       method: 'POST',
@@ -948,34 +947,35 @@ async function submitDeleteAccount() {
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       const msg  = body.error || 'Account deletion failed. Please try again.';
-      // Restore button so the user can retry.
       if (btn) { btn.disabled = false; btn.textContent = 'Permanently Delete Account'; }
       const sub = document.querySelector('#auth-delete .auth-sub, #auth-delete .delete-warning');
       if (sub) sub.textContent = msg;
       return;
     }
-
-    ok = true;
-  } catch(e) {
-    console.error('submitDeleteAccount fetch error:', e);
+  } catch(err) {
+    console.log('delete error:', err);
     if (btn) { btn.disabled = false; btn.textContent = 'Permanently Delete Account'; }
     const sub = document.querySelector('#auth-delete .auth-sub, #auth-delete .delete-warning');
     if (sub) sub.textContent = 'Network error. Please check your connection and try again.';
     return;
   }
 
-  if (!ok) return;
-
   // Server confirmed deletion — wipe all local state.
+  console.log('delete success, clearing local state');
+
+  // Sign out the Supabase client session first so the onAuthStateChange SIGNED_OUT
+  // event fires now (while we still control the flow) rather than racing with
+  // our redirect timeout below.
+  if (sbClient) await sbClient.auth.signOut().catch(() => {});
+
   localStorage.clear();
   _clearSession();
-  closeAuthModal();
 
-  // Show confirmation and redirect to login.
+  // Do NOT call closeAuthModal() here — it queues startOnboardingFlow() via a
+  // 350ms setTimeout which would race with and override our redirect below.
+  // Instead keep the modal open and switch its active screen directly.
   setTimeout(() => {
     navigateAuth('login');
-    const modal = document.getElementById('auth-modal');
-    if (modal) modal.classList.add('active');
     const sub = document.querySelector('#auth-login .auth-sub');
     if (sub) sub.textContent = 'Your account has been deleted.';
     updateAuthUI();
