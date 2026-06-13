@@ -242,6 +242,11 @@ function setCleanseStart(mode) {
     }
   }
   localStorage.setItem('cleanseStartDate', dateStr);
+  // Record which user set this date so a different account on the same device
+  // doesn't inherit it (validated in _applySession on next login).
+  if (typeof AUTH !== 'undefined' && AUTH.userId) {
+    localStorage.setItem('cleanseUserId', AUTH.userId);
+  }
   closeDatePicker();
   const day = getCleanseDay() || 1;
   if (day <= 7) updateDayProgress(day);

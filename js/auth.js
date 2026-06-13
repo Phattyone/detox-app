@@ -277,6 +277,15 @@ function _applySession(session) {
   AUTH.userId       = u.id;   // flat alias — safe to reference without nested access
   AUTH.access_token = session.access_token;
 
+  // If the stored cleanse start date belongs to a different user, clear it so
+  // a new account on the same device always starts fresh.
+  const storedUserId = localStorage.getItem('cleanseUserId');
+  if (storedUserId && storedUserId !== AUTH.userId) {
+    localStorage.removeItem('cleanseStartDate');
+    localStorage.removeItem('cleanseUserId');
+    localStorage.removeItem('healthScreeningComplete');
+  }
+
   // Role: prefer metadata, fall back to email-match for admin
   const role = meta.role || (u.email === ADMIN_EMAIL ? 'admin' : 'user');
   AUTH.role  = role;
@@ -378,6 +387,8 @@ async function signOut() {
   //      detox_email_list        — marketing capture data, not session data
   //      healthScreeningComplete — shows only once; cleared by "Reset My Cleanse"
   //      cleanseStartDate        — user set this; should not re-prompt on every login
+  //      cleanseUserId           — paired with cleanseStartDate; _applySession() uses it
+  //                                to detect a different user logging in and clear the date
   //      cleanseSchedule         — user-configured reminder schedule
   //      scheduleCollapsed       — UI preference (scheduler panel open/closed)
   //      avoidListCollapsed      — UI preference (avoid list open/closed)
@@ -970,6 +981,15 @@ async function submitDeleteAccount() {
 
   localStorage.clear();
   _clearSession();
+
+  // Reset in-memory STATE and re-render the home page to clear the water
+  // display and any other stale UI immediately after deletion.
+  if (typeof STATE !== 'undefined') {
+    STATE.water      = {};
+    STATE.tracker    = {};
+    STATE.selections = {};
+  }
+  if (typeof renderHome === 'function') renderHome();
 
   // Do NOT call closeAuthModal() here — it queues startOnboardingFlow() via a
   // 350ms setTimeout which would race with and override our redirect below.
