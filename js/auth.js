@@ -1481,14 +1481,6 @@ async function _initSupabaseSession() {
       _validateCleanseOwner();
       updateAuthUI();
       renderPricingScreen();
-      // New or reset user landing back after email verification — start onboarding.
-      // Check the user-specific key first, fall back to the legacy key for
-      // existing users who completed screening before the per-user migration.
-      const hKey = AUTH.userId ? 'healthScreeningComplete_' + AUTH.userId : 'healthScreeningComplete';
-      const needsOnboarding = !localStorage.getItem(hKey) && !localStorage.getItem('healthScreeningComplete');
-      if (needsOnboarding && typeof startOnboardingFlow === 'function') {
-        setTimeout(startOnboardingFlow, 350);
-      }
     }
     if (event === 'SIGNED_OUT') {
       _clearSession();
