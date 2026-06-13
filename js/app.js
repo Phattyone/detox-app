@@ -283,19 +283,20 @@ function _healthKey() {
 
 // Returns the stored health screening value, checking the user-specific key
 // first and falling back to the legacy unprefixed key for existing users.
+// Uses cleanseUserId as a proxy for AUTH.userId when the async session hasn't
+// resolved yet (page load), so the correct key is found before AUTH is populated.
 function _getHealthStatus() {
+  const userId = AUTH.userId || localStorage.getItem('cleanseUserId');
+  const userKey = userId ? 'healthScreeningComplete_' + userId : null;
+  const result = (userKey && localStorage.getItem(userKey))
+    || localStorage.getItem('healthScreeningComplete');
   console.log('[debug] _getHealthStatus:', {
-    authUserId: (typeof AUTH !== 'undefined') ? AUTH.userId : 'AUTH undefined',
-    userKey: (typeof AUTH !== 'undefined' && AUTH.userId)
-      ? localStorage.getItem('healthScreeningComplete_' + AUTH.userId)
-      : 'no userId',
+    authUserId: AUTH.userId,
+    resolvedUserId: userId,
+    userKey: userKey ? localStorage.getItem(userKey) : 'no key',
     legacyKey: localStorage.getItem('healthScreeningComplete'),
   });
-  if (typeof AUTH !== 'undefined' && AUTH.userId) {
-    return localStorage.getItem('healthScreeningComplete_' + AUTH.userId)
-        || localStorage.getItem('healthScreeningComplete');
-  }
-  return localStorage.getItem('healthScreeningComplete');
+  return result;
 }
 
 // Call startOnboardingFlow() after any auth event; it handles the sequence.
