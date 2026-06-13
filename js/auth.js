@@ -991,6 +991,19 @@ async function submitDeleteAccount() {
   }
   if (typeof renderHome === 'function') renderHome();
 
+  // Write a fresh zeroed companion so the widget doesn't display stale points.
+  const freshCompanion = {
+    mood: 'neutral', badges: [], points: 0, streak: 0, growthStage: 1,
+    todayPoints: 0, cleanseCount: 0, allTimePoints: 0,
+    lastPointDate: null, lastStreakDate: null, lastActiveDay: null,
+  };
+  localStorage.setItem('cleanseCompanion', JSON.stringify(freshCompanion));
+
+  if (typeof renderTracker          === 'function') renderTracker();
+  if (typeof gateTracker            === 'function') gateTracker();
+  if (typeof renderCompanionWidget  === 'function') renderCompanionWidget();
+  if (typeof updateCompanionDisplay === 'function') updateCompanionDisplay();
+
   // Do NOT call closeAuthModal() here — it queues startOnboardingFlow() via a
   // 350ms setTimeout which would race with and override our redirect below.
   // Instead keep the modal open and switch its active screen directly.
