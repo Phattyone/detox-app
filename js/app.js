@@ -282,21 +282,42 @@ function _healthKey() {
 }
 
 // Returns the stored health screening value, checking the user-specific key
-// first and falling back to the legacy unprefixed key for existing users.
+// first. Migrates the legacy unprefixed key to the user-specific format the
+// first time a logged-in user is seen, so existing users aren't re-prompted.
 // Uses cleanseUserId as a proxy for AUTH.userId when the async session hasn't
 // resolved yet (page load), so the correct key is found before AUTH is populated.
 function _getHealthStatus() {
   const userId = AUTH.userId || localStorage.getItem('cleanseUserId');
   const userKey = userId ? 'healthScreeningComplete_' + userId : null;
-  const result = (userKey && localStorage.getItem(userKey))
-    || localStorage.getItem('healthScreeningComplete');
+
+  // Check user-specific key first
+  if (userKey && localStorage.getItem(userKey)) {
+    console.log('[debug] _getHealthStatus:', {
+      authUserId: AUTH.userId,
+      resolvedUserId: userId,
+      userKey: 'true',
+      legacyKey: localStorage.getItem('healthScreeningComplete'),
+    });
+    return true;
+  }
+
+  // Migration: legacy key exists — promote it to user-specific format so
+  // subsequent reads use the per-user key and the old key is cleaned up.
+  const legacy = localStorage.getItem('healthScreeningComplete');
+  if (legacy && AUTH.userId) {
+    localStorage.setItem('healthScreeningComplete_' + AUTH.userId, 'true');
+    localStorage.removeItem('healthScreeningComplete');
+    console.log('[debug] _getHealthStatus: migrated legacy key for', AUTH.userId);
+    return true;
+  }
+
   console.log('[debug] _getHealthStatus:', {
     authUserId: AUTH.userId,
     resolvedUserId: userId,
-    userKey: userKey ? localStorage.getItem(userKey) : 'no key',
-    legacyKey: localStorage.getItem('healthScreeningComplete'),
+    userKey: null,
+    legacyKey: legacy,
   });
-  return result;
+  return legacy || null;
 }
 
 // Call startOnboardingFlow() after any auth event; it handles the sequence.
