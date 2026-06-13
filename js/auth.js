@@ -303,6 +303,11 @@ function _clearSession() {
 // Called after AUTH.userId is set so the comparison is valid.
 // Returns false when a mismatch is detected, true otherwise.
 function _validateCleanseOwner() {
+  console.log('[debug] _validateCleanseOwner:', {
+    storedUserId: localStorage.getItem('cleanseUserId'),
+    authUserId: AUTH.userId,
+    healthKeys: Object.keys(localStorage).filter(k => k.includes('healthScreeningComplete')),
+  });
   const storedUserId = localStorage.getItem('cleanseUserId');
   if (storedUserId && storedUserId !== AUTH.userId) {
     localStorage.removeItem('cleanseStartDate');
@@ -417,6 +422,9 @@ async function signOut() {
       localStorage.removeItem(k);
     }
   });
+
+  console.log('[debug] signOut complete. healthScreeningComplete keys remaining:',
+    Object.keys(localStorage).filter(k => k.includes('healthScreeningComplete')));
 
   // 3. Reset in-memory AUTH state
   _clearSession();

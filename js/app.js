@@ -284,6 +284,13 @@ function _healthKey() {
 // Returns the stored health screening value, checking the user-specific key
 // first and falling back to the legacy unprefixed key for existing users.
 function _getHealthStatus() {
+  console.log('[debug] _getHealthStatus:', {
+    authUserId: (typeof AUTH !== 'undefined') ? AUTH.userId : 'AUTH undefined',
+    userKey: (typeof AUTH !== 'undefined' && AUTH.userId)
+      ? localStorage.getItem('healthScreeningComplete_' + AUTH.userId)
+      : 'no userId',
+    legacyKey: localStorage.getItem('healthScreeningComplete'),
+  });
   if (typeof AUTH !== 'undefined' && AUTH.userId) {
     return localStorage.getItem('healthScreeningComplete_' + AUTH.userId)
         || localStorage.getItem('healthScreeningComplete');
@@ -2109,6 +2116,7 @@ const HEALTH_QUESTIONS = [
 ];
 
 function maybeShowHealthScreening() {
+  console.log('[debug] maybeShowHealthScreening called, isComplete:', _getHealthStatus());
   if (_getHealthStatus()) return; // done already
   // Don't stack with auth modal or date picker
   const authModal  = document.getElementById('auth-modal');
