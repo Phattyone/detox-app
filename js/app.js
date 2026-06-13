@@ -2630,9 +2630,8 @@ async function handleResetCleanse() {
   }));
 
   // Navigate only after cleanup is confirmed complete.
-  // closeAuthModal() queues startOnboardingFlow() via its callback — don't double-fire.
   if (typeof closeAuthModal === 'function') closeAuthModal();
-  else startOnboardingFlow();
+  startOnboardingFlow();
 }
 
 // Light reset: clears only the start date (keeps health screening status)

@@ -481,11 +481,6 @@ function navigateAuth(screen) {
 function closeAuthModal() {
   const modal = document.getElementById('auth-modal');
   if (modal) modal.classList.remove('active');
-  // Fix 1: trigger onboarding flow after modal closes
-  // (covers sign-up path which doesn't page-reload)
-  if (typeof startOnboardingFlow === 'function') {
-    setTimeout(startOnboardingFlow, 350);
-  }
 }
 
 function clearAuthErrors() {
@@ -608,6 +603,7 @@ async function handleSelectPlan(planId) {
     }
     updateAuthUI();
     closeAuthModal();
+    if (typeof startOnboardingFlow === 'function') setTimeout(startOnboardingFlow, 350);
     return;
   }
   if (!isLoggedIn()) {
@@ -685,7 +681,7 @@ function showPaymentSuccess(planId) {
           </div>
         </div>
 
-        <button class="auth-btn mt-12" onclick="closeAuthModal(); updateAuthUI();">Start Your Cleanse</button>
+        <button class="auth-btn mt-12" onclick="closeAuthModal(); updateAuthUI(); setTimeout(startOnboardingFlow, 350);">Start Your Cleanse</button>
       </div>`;
   }
   updateAuthUI();
