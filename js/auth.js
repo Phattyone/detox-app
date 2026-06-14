@@ -440,24 +440,46 @@ async function forgotPassword(email) {
   return true; // Always show success — don't reveal whether the email exists
 }
 
-async function startCheckout(planId) {
-  // ── CONNECT: STRIPE ──
-  // Replace with a call to your Supabase Edge Function:
-  //   const res = await fetch(STRIPE_ENDPOINT, {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AUTH.access_token}` },
-  //     body: JSON.stringify({ priceId: PLANS[planId].stripePriceId, userId: AUTH.user.id })
-  //   });
-  //   const { url } = await res.json();
-  //   window.location.href = url; // Redirect to Stripe Checkout
-  //
-  // Until Stripe is wired: store plan in Supabase user metadata (demo upgrade).
-  if (sbClient && AUTH.user) {
-    try { await sbClient.auth.updateUser({ data: { plan: planId } }); }
-    catch(e) { console.warn('Could not sync plan to Supabase:', e); }
+async function startCheckout(priceId, mode) {
+  if (!isLoggedIn()) {
+    navigateAuth('signup');
+    return;
   }
-  AUTH.plan = planId;
-  showPaymentSuccess(planId);
+
+  const token = AUTH.access_token;
+  if (!token) return;
+
+  const btn = event?.target;
+  if (btn) {
+    btn.disabled    = true;
+    btn.textContent = 'Loading...';
+  }
+
+  try {
+    const response = await fetch('/api/stripe-checkout', {
+      method:  'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({ priceId, mode }),
+    });
+
+    const data = await response.json();
+
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || 'Checkout failed');
+    }
+  } catch (err) {
+    console.error('Checkout error:', err);
+    alert('Unable to start checkout. Please try again.');
+    if (btn) {
+      btn.disabled    = false;
+      btn.textContent = 'Upgrade';
+    }
+  }
 }
 
 /* ── HELPER ───────────────────────────────────────────────────────────────── */
@@ -1046,8 +1068,27 @@ function renderPricingScreen() {
       ? `<div class="plan-price-alt">${plan.priceAlt}</div>`
       : '';
 
-    const btnLabel = isCurrentPlan ? 'Current Plan'
-      : (plan.ctaLabel || 'Choose Plan');
+    // Build plan-specific button(s) — paid plans go direct to Stripe Checkout
+    const PLAN_STRIPE = {
+      basic:    ['price_1TiGwgFVIq4JLJVkXkxIkaHO', 'subscription'],
+      seasonal: ['price_1TiGxVFVIq4JLJVkOzQ8G7Pd', 'subscription'],
+      lifetime: ['price_1TiHP1FVIq4JLJVkfx3WizFV', 'payment'],
+    };
+    let btnHtml;
+    if (isCurrentPlan) {
+      btnHtml = `<button class="plan-btn plan-btn-current" disabled>Current Plan</button>`;
+    } else if (planId === 'free') {
+      btnHtml = `<button class="plan-btn" onclick="handleSelectPlan('free')">${plan.ctaLabel || 'Get Started Free'}</button>`;
+    } else if (planId === 'premium') {
+      btnHtml = `
+        <button class="plan-btn" onclick="startCheckout('price_1TiGxuFVIq4JLJVkbhJdXGHp','subscription')">Monthly</button>
+        <button class="plan-btn" style="margin-top:8px" onclick="startCheckout('price_1TiGyNFVIq4JLJVk5zkbySPB','subscription')">Annual <em>(save ~17%)</em></button>`;
+    } else {
+      const [priceId, mode] = PLAN_STRIPE[planId] || [];
+      btnHtml = priceId
+        ? `<button class="plan-btn" onclick="startCheckout('${priceId}','${mode}')">${plan.ctaLabel || 'Choose Plan'}</button>`
+        : `<button class="plan-btn" onclick="handleSelectPlan('${planId}')">${plan.ctaLabel || 'Choose Plan'}</button>`;
+    }
 
     const badgeHtml = plan.badge
       ? `<div class="plan-badge ${plan.badgeClass || ''}">${plan.badge}</div>`
@@ -1062,11 +1103,7 @@ function renderPricingScreen() {
         ${altPrice}
         <div class="plan-desc">${plan.description}</div>
         <div class="plan-features">${featuresHtml}</div>
-        <button class="plan-btn ${isCurrentPlan ? 'plan-btn-current' : ''}"
-          onclick="handleSelectPlan('${planId}')"
-          ${isCurrentPlan ? 'disabled' : ''}>
-          ${btnLabel}
-        </button>
+        ${btnHtml}
       </div>`;
   }).join('');
 
@@ -1109,34 +1146,20 @@ function renderPricingScreen() {
 
 /* ── ADD-ON PURCHASE HANDLER ──────────────────────────────────────────────── */
 function handleAddonPurchase(addonId) {
-  const plan = AUTH.plan;
-
-  // Member-discounted guide prices by tier (Fix 6)
-  const guidePrice = (plan === 'seasonal') ? '$9.99'
-                   : (plan === 'basic')    ? '$11.99'
-                   : '$14.99';
-
-  const addons = {
-    guide:          { name: 'Digital Guide',             price: guidePrice, stripePriceId: 'price_GUIDE_1499'         }, // ── CONNECT: STRIPE ──
-    spreadsheet:    { name: 'Interactive Spreadsheet',   price: '$9.99',    stripePriceId: 'price_SPREADSHEET_999'    }, // ── CONNECT: STRIPE ──
-    bundle:         { name: 'Guide + Spreadsheet Bundle',price: '$19.99',   stripePriceId: 'price_BUNDLE_1999'        }, // ── CONNECT: STRIPE ──
-    'physical-guide':{ name: 'Physical Guide (printed & shipped)', price: '$26.99', physicalUrl: null                  }, // ── CONNECT: PHYSICAL GUIDE PURCHASE URL ──
-  };
-  const addon = addons[addonId];
-  if (!addon) return;
-
   if (!isLoggedIn()) { navigateAuth('signup'); return; }
 
   if (addonId === 'physical-guide') {
-    // ── CONNECT: PHYSICAL GUIDE PURCHASE URL ──
-    // Replace with your Amazon KDP or print-on-demand store URL:
-    // window.open('YOUR_PHYSICAL_GUIDE_URL', '_blank');
-    alert('Physical Guide — $26.99\n\nWire this to your Amazon KDP or print-on-demand store URL.\nSearch for: CONNECT: PHYSICAL GUIDE PURCHASE URL');
+    alert('Physical Guide — $26.99\n\nAvailable on Amazon KDP.\nLink coming soon.');
     return;
   }
 
-  // ── CONNECT: STRIPE ── open Stripe Checkout for addon.stripePriceId
-  alert(`Add-on: ${addon.name} — ${addon.price}\n\nWire to Stripe Checkout using price ID: ${addon.stripePriceId}`);
+  const addonPrices = {
+    guide:       ['price_1TiHCtFVIq4JLJVkVZLwKxQD', 'payment'],
+    spreadsheet: ['price_1TiHDHFVIq4JLJVklAq7dWKX', 'payment'],
+    bundle:      ['price_1TiH0sFVIq4JLJVkQimq6F7h', 'payment'],
+  };
+  const [priceId, mode] = addonPrices[addonId] || [];
+  if (priceId) startCheckout(priceId, mode);
 }
 
 /* ── UPDATE UI BASED ON AUTH STATE ────────────────────────────────────────── */

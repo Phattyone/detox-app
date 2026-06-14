@@ -4602,4 +4602,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (isLoggedIn()) startOnboardingFlow();
   if (isLoggedIn()) initScheduler();
   if (isLoggedIn()) updateCompanionDisplay();
+
+  // Handle Stripe checkout success redirect
+  const _checkoutParams = new URLSearchParams(window.location.search);
+  if (_checkoutParams.get('checkout') === 'success') {
+    window.history.replaceState({}, '', window.location.pathname);
+    if (typeof showUpgradeModal === 'function') showUpgradeModal('');
+    const sub = document.querySelector('#auth-pricing .auth-sub');
+    if (sub) sub.textContent = 'Payment successful! Your plan will update within a few seconds. Please sign out and back in to see your new access.';
+  }
 });
