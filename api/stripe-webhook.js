@@ -63,7 +63,7 @@ function getRawBody(req) {
   });
 }
 
-module.exports = async function handler(req, res) {
+const handler = async function (req, res) {
 
   /* ── Only allow POST ────────────────────────────────────────────────────── */
   if (req.method !== 'POST') {
@@ -186,3 +186,8 @@ module.exports = async function handler(req, res) {
 
   return res.status(200).json({ received: true });
 };
+
+// Tell Vercel not to parse the body so we can verify the Stripe signature
+handler.config = { api: { bodyParser: false } };
+
+module.exports = handler;
