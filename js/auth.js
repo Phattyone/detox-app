@@ -589,6 +589,7 @@ async function handleSignIn() {
       loadCloudData().then(() => {
         if (typeof loadState    === 'function') loadState();
         if (typeof renderHome   === 'function') renderHome();
+        if (typeof applyContentGating === 'function') applyContentGating();
       }).catch(() => {
         if (typeof renderHome   === 'function') renderHome();
       });
@@ -1483,6 +1484,7 @@ async function _initSupabaseSession() {
           // Re-read STATE from localStorage so water/tracker reflect cloud data.
           if (typeof loadState === 'function') loadState();
           if (typeof renderHome === 'function') renderHome();
+          if (typeof applyContentGating === 'function') applyContentGating();
           // AUTH.userId is guaranteed populated here — safe to check onboarding.
           if (typeof startOnboardingFlow === 'function') startOnboardingFlow();
         }).catch(() => {});
