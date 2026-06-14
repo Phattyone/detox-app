@@ -1622,6 +1622,24 @@ function ungateAll() {
   if (saveBtn && saveBtn.textContent === 'Save Day 1 Entry') {
     saveBtn.textContent = 'Save Entry';
   }
+
+  // Restore generator button onclick (gateGenerator() replaces it)
+  const genBtn = document.querySelector('.random-btn');
+  if (genBtn) genBtn.onclick = () => randomize();
+
+  // Restore checklist item onclick handlers (gateChecklist() nulls them)
+  document.querySelectorAll('.checklist-item').forEach(el => {
+    el.onclick = () => toggleCheck(el);
+  });
+
+  // Restore check-box content and styles (gateChecklist() swaps them for a lock)
+  document.querySelectorAll('.check-box').forEach(box => {
+    if (box.textContent === '🔒') {
+      box.textContent   = '';
+      box.style.background  = '';
+      box.style.borderColor = '';
+    }
+  });
 }
 
 // Called after every auth state change to re-apply all restrictions
@@ -4619,7 +4637,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderShop('all');
   renderGuide();               // Task 6 & 7: guide + downloads page
   navigate('home');
-  applyContentGating();
   updateTrackerSyncMsg();
   renderPlanBanner();
   initCoachButton();           // Task 2: AI coach button visibility
