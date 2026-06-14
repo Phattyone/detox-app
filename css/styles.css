@@ -2259,7 +2259,7 @@ input, select, textarea { font: inherit; }
 /* Tester floating feedback button */
 .tester-feedback-btn {
   position: fixed;
-  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 80px);
   right: 16px;
   z-index: 500;
   background: var(--amber);

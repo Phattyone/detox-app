@@ -283,10 +283,7 @@ function _applySession(session) {
   const role = meta.role || (u.email === ADMIN_EMAIL ? 'admin' : 'user');
   AUTH.role  = role;
 
-  // Plan: role-based overrides take priority
-  if      (role === 'admin')  AUTH.plan = 'admin';
-  else if (role === 'tester') AUTH.plan = 'tester';
-  else                        AUTH.plan = meta.plan || 'free';
+  AUTH.plan = meta.plan || 'free';
 }
 
 // Reset AUTH to signed-out state.
