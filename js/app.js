@@ -1598,6 +1598,8 @@ function ungateAll() {
     '.shop-link-row',
     '.gate-lock-card',
     '#meal-generator-btn',
+    '.checklist-item',
+    '.check-text',
   ];
   selectors.forEach(sel => {
     document.querySelectorAll(sel).forEach(el => {
@@ -1612,7 +1614,7 @@ function ungateAll() {
   // Remove injected gate UI elements
   document.querySelectorAll(
     '.gate-upgrade-prompt, .gate-sample-note, .gate-generator-teaser, ' +
-    '.gate-blur-overlay, .gate-lock-card, .session-interstitial'
+    '.gate-blur-overlay, .gate-lock-card, .gate-unlock-row, .session-interstitial'
   ).forEach(el => el.remove());
 
   // Restore save button text if it was swapped for a gated label
