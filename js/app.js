@@ -1586,8 +1586,45 @@ function handleEmailCapture() {
 
 /* ── CONTENT GATING ───────────────────────────────────────────────────────── */
 
+// Remove all gate-applied restrictions so gating can be re-evaluated cleanly
+function ungateAll() {
+  const selectors = [
+    '#metrics-grid',
+    '#wellness-grid',
+    '#journal-prompts',
+    '#journal-prompts .journal-prompt',
+    '.meal-card',
+    '.recipe-instructions',
+    '.shop-link-row',
+    '.gate-lock-card',
+    '#meal-generator-btn',
+  ];
+  selectors.forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => {
+      el.style.filter        = '';
+      el.style.pointerEvents = '';
+      el.style.userSelect    = '';
+      el.style.opacity       = '';
+      el.style.display       = '';
+    });
+  });
+
+  // Remove injected gate UI elements
+  document.querySelectorAll(
+    '.gate-upgrade-prompt, .gate-sample-note, .gate-generator-teaser, ' +
+    '.gate-blur-overlay, .gate-lock-card, .session-interstitial'
+  ).forEach(el => el.remove());
+
+  // Restore save button text if it was swapped for a gated label
+  const saveBtn = document.querySelector('.save-btn');
+  if (saveBtn && saveBtn.textContent === 'Save Day 1 Entry') {
+    saveBtn.textContent = 'Save Entry';
+  }
+}
+
 // Called after every auth state change to re-apply all restrictions
 function applyContentGating() {
+  ungateAll(); // clear stale restrictions before re-evaluating
   gateChecklist();
   gateGenerator();
   gateShopLinks();
