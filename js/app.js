@@ -65,7 +65,7 @@ function navigate(pageId) {
   // are visible while free users still see only their allowed content.
   if (pageId === 'tracker' && isLoggedIn()) {
     if (typeof renderTracker === 'function') renderTracker();
-    if (typeof gateTracker  === 'function') gateTracker();
+    if (typeof applyContentGating === 'function') applyContentGating();
   }
 }
 
@@ -962,7 +962,7 @@ function setTrackerDay(day) {
   STATE.trackerDay = day;
   renderTrackerDayTabs();
   // Re-apply subscription gating to freshly-rendered tabs
-  if (typeof gateTracker === 'function') gateTracker();
+  if (typeof applyContentGating === 'function') applyContentGating();
   renderMetrics();
   renderPhotos();    // Task 3: refresh photo slots for selected day
   renderWellness();
