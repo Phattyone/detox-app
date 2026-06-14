@@ -1597,7 +1597,7 @@ function ungateAll() {
     '.recipe-instructions',
     '.shop-link-row',
     '.gate-lock-card',
-    '#meal-generator-btn',
+    '.random-btn',
     '.checklist-item',
     '.check-text',
   ];
