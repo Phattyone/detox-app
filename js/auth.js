@@ -534,6 +534,7 @@ async function handleSignUp() {
   setAuthLoading('btn-signup', true);
   try {
     const result = await signUp(name, email, password);
+    if (typeof subscribeEmail === 'function') subscribeEmail(email, name);
     if (result && result.needsVerification) {
       // Supabase requires email confirmation before the account is active.
       const inner = document.querySelector('#auth-signup .auth-screen-inner');

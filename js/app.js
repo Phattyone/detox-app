@@ -19,6 +19,21 @@ let _cloudLoadInProgress = false;
 // cleanse start date) has been restored from Supabase.
 let _cloudDataLoaded = false;
 
+/* ── EMAIL CAPTURE HELPER ─────────────────────────────────────────────────── */
+// Fire-and-forget — never blocks the UI.
+async function subscribeEmail(email, name) {
+  if (!email || !email.includes('@')) return;
+  try {
+    await fetch('/api/mailerlite', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, name: name || '' }),
+    });
+  } catch(e) {
+    console.warn('Email capture failed:', e);
+  }
+}
+
 /* ── LOCAL STORAGE HELPERS ────────────────────────────────────────────────── */
 function loadState() {
   try {
@@ -1572,6 +1587,7 @@ function handleEmailCapture() {
     emails.push(email);
     localStorage.setItem('detox_email_list', JSON.stringify(emails));
   }
+  subscribeEmail(email);
 
   const banner = document.getElementById('email-capture-banner');
   if (banner) {
