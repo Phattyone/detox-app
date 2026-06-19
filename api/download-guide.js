@@ -76,30 +76,41 @@ module.exports = async function handler(req, res) {
     return res.status(403).json({ error: 'Guide download requires Basic plan or above.' });
   }
 
-  /* ── Fetch PDF from Supabase Storage ────────────────────────────────────── */
-  let arrayBuffer;
+  /* ── Block 1A — Generate signed URL ────────────────────────────────────── */
+  let signedUrl;
   try {
-    // Generate a short-lived signed URL
     const { data: signedData, error: signError } = await supabase.storage
       .from('downloads')
       .createSignedUrl('guides/detox-cleanse-guide.pdf', 60);
 
     if (signError || !signedData?.signedUrl) {
-      console.error('download-guide: signed URL error:', signError);
-      throw new Error('Could not generate download URL');
+      console.error('download-guide: signed URL failed:', signError);
+      return res.status(500).json({ error: 'Could not generate download link.' });
     }
 
-    // Fetch PDF from signed URL
-    const pdfResponse = await fetch(signedData.signedUrl);
+    signedUrl = signedData.signedUrl;
+    console.log('download-guide: signed URL ok');
+  } catch (err) {
+    console.error('download-guide: signed URL exception:', err.message);
+    return res.status(500).json({ error: 'Could not generate download link.' });
+  }
+
+  /* ── Block 1B — Fetch PDF from signed URL ───────────────────────────────── */
+  let arrayBuffer;
+  try {
+    const pdfResponse = await fetch(signedUrl);
+    console.log('download-guide: PDF fetch status:', pdfResponse.status);
 
     if (!pdfResponse.ok) {
-      console.error('download-guide: PDF fetch failed:', pdfResponse.status);
-      throw new Error('Failed to fetch PDF');
+      const errText = await pdfResponse.text();
+      console.error('download-guide: PDF fetch failed:', pdfResponse.status, errText);
+      return res.status(500).json({ error: 'Could not retrieve guide. Please try again.' });
     }
 
     arrayBuffer = await pdfResponse.arrayBuffer();
+    console.log('download-guide: PDF bytes received:', arrayBuffer.byteLength);
   } catch (err) {
-    console.error('download-guide: storage fetch failed:', err.message || err);
+    console.error('download-guide: PDF fetch exception:', err.message);
     return res.status(500).json({ error: 'Could not retrieve guide. Please try again.' });
   }
 
