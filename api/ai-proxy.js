@@ -75,7 +75,7 @@ module.exports = async function handler(req, res) {
         'Authorization': 'Bearer ' + apiKey,
       },
       body: JSON.stringify({
-        model:       'llama-3.3-70b-versatile',
+        model:       'moonshotai/kimi-k2-instruct',
         messages:    groqMessages,
         max_tokens:  maxTokens,
         temperature: 0.7,
