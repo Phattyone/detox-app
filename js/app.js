@@ -1182,7 +1182,7 @@ function renderPhotos() {
 
     if (photo) {
       return `
-        <div class="${isActive}">
+        <div class="${isActive}" data-day="${d}">
           <div class="photo-day-num">Day ${d}</div>
           <div class="photo-thumb-wrap">
             <img src="${photo}" class="photo-thumb" alt="Day ${d} photo" />
@@ -1191,7 +1191,7 @@ function renderPhotos() {
         </div>`;
     }
     return `
-      <div class="${isActive}">
+      <div class="${isActive}" data-day="${d}">
         <div class="photo-day-num">Day ${d}</div>
         <label class="photo-placeholder" for="photo-input-${d}" title="Add photo for Day ${d}">
           <span class="photo-placeholder-icon">📷</span>
@@ -1203,9 +1203,8 @@ function renderPhotos() {
   }).join('');
 
   const syncNote = (isLoggedIn() && AUTH.plan !== 'free')
-    ? 'Photos saved to your account.'
+    ? 'Photos saved to your account and synced across devices.'
     : `Photos stored on this device. <span class="sync-link" onclick="navigateAuth('login'); document.getElementById('auth-modal').classList.add('active')">Sign in</span> to back up to the cloud.`;
-    // -- BUILD: SUPABASE PHOTO STORAGE -- Move photos to Supabase Storage in Round 3
 
   const section = document.createElement('div');
   section.id = 'photos-section';
@@ -1215,6 +1214,9 @@ function renderPhotos() {
     <div class="photos-sync-note">${syncNote}</div>`;
 
   metricsGrid.after(section);
+
+  // Fill in any cloud photos not in localStorage (fire-and-forget)
+  if (isLoggedIn() && AUTH.access_token) _loadCloudPhotos();
 }
 
 function uploadPhoto(event, day) {
@@ -1231,10 +1233,11 @@ function uploadPhoto(event, day) {
       alert('Not enough storage space to save this photo. Try deleting older photos.');
       return;
     }
-    // Re-render photos section in place
     const existing = document.getElementById('photos-section');
     if (existing) existing.remove();
     renderPhotos();
+    // Sync to cloud (fire-and-forget)
+    if (isLoggedIn() && AUTH.access_token) _syncPhotoToCloud(day, dataUrl);
   }).catch(() => alert('Could not process this image. Please try another.'));
 }
 
@@ -1244,6 +1247,62 @@ function deletePhoto(day) {
   const existing = document.getElementById('photos-section');
   if (existing) existing.remove();
   renderPhotos();
+  // Delete from cloud (fire-and-forget)
+  if (isLoggedIn() && AUTH.access_token) _deleteCloudPhoto(day);
+}
+
+async function _syncPhotoToCloud(day, dataUrl) {
+  try {
+    await fetch('/api/photo-upload', {
+      method:  'POST',
+      headers: { 'Authorization': 'Bearer ' + AUTH.access_token, 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ file: dataUrl, day }),
+    });
+  } catch(e) {
+    console.warn('[photos] cloud sync failed:', e);
+  }
+}
+
+async function _deleteCloudPhoto(day) {
+  try {
+    await fetch('/api/photo-upload', {
+      method:  'DELETE',
+      headers: { 'Authorization': 'Bearer ' + AUTH.access_token, 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ day }),
+    });
+  } catch(e) {
+    console.warn('[photos] cloud delete failed:', e);
+  }
+}
+
+async function _loadCloudPhotos() {
+  if (!AUTH.access_token) return;
+  const grid = document.querySelector('#photos-section .photos-grid');
+  if (!grid) return;
+  for (let d = 1; d <= 7; d++) {
+    if (localStorage.getItem(`photos_day_${d}`)) continue; // already displayed from localStorage
+    const slot = grid.querySelector(`[data-day="${d}"]`);
+    if (!slot) continue;
+    try {
+      const resp = await fetch(`/api/photo-url?day=${d}`, {
+        headers: { 'Authorization': 'Bearer ' + AUTH.access_token },
+      });
+      if (!resp.ok) continue;
+      const { url } = await resp.json();
+      if (!url) continue;
+      // Patch the slot DOM in-place (don't re-render to avoid flash)
+      const isActive = d === STATE.trackerDay ? 'photo-slot photo-active' : 'photo-slot';
+      slot.className = isActive;
+      slot.innerHTML = `
+        <div class="photo-day-num">Day ${d}</div>
+        <div class="photo-thumb-wrap">
+          <img src="${url}" class="photo-thumb" alt="Day ${d} photo" />
+          <button class="photo-delete-btn" onclick="deletePhoto(${d})" title="Delete photo">🗑</button>
+        </div>`;
+    } catch(e) {
+      console.warn(`[photos] could not load cloud photo day ${d}:`, e);
+    }
+  }
 }
 
 function compressImage(file, maxWidth) {
@@ -4468,7 +4527,7 @@ async function syncBodyMetrics(dayNumber) {
       user_id:    AUTH.user.id,
       day_number: dayNumber,
       metrics:    metrics,
-      photos:     null, // ROUND 3 PHOTOS: migrate to Supabase Storage in next session
+      photos:     null, // photos stored separately in Supabase Storage bucket "photos"
     }, { onConflict: 'user_id,day_number' });
 
     if (error) console.warn('[sync] body_metrics:', error.message);
@@ -4577,7 +4636,7 @@ async function loadCloudData() {
         Object.entries(row.metrics || {}).forEach(([field, val]) => {
           STATE.tracker[`metric_${day}_${field}`] = val;
         });
-        // ROUND 3 PHOTOS: migrate to Supabase Storage in next session
+        // PHOTOS: stored in Supabase Storage under photos/{userId}/{day}.jpg — loaded on demand via /api/photo-url
       });
       saveTracker();
     }
