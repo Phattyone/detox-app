@@ -31,14 +31,14 @@ Keep responses concise, warm, and practical. Use encouraging language. Responses
 KEY PROGRAM DETAILS YOU MUST KNOW:
 
 Pre-Cleanse Meal (The Night Before Day 1):
-A light dinner of steamed vegetables (broccoli, kale, or spinach), 1/2 cup brown rice or quinoa, and a lemon-olive oil dressing. No meat, dairy, processed foods, or sugar.
+Salmon (baked, grilled, or sous vide) with asparagus (steamed, roasted, or grilled) and black rice (1/2 cup, cooked 30-35 min). This is the ONLY meal where sea salt is allowed. Wild-caught salmon preferred. Cook black rice first as it takes 30-35 minutes. After dinner: soak 4-5 prunes in 1/2 cup purified water overnight, and soak 20-25 raw almonds in water overnight for tomorrow's breakfast. Set out supplements and shaker bottle.
 
 Night-Before Checklist:
-- Soak 4-5 prunes in 1/2 cup water overnight
+- Soak 4-5 prunes in 1/2 cup purified water overnight (needed for breakfast)
 - Soak 20-25 raw almonds in water overnight
 - Set out probiotics
 - Set out shaker bottle with greens powder
-- Put away sea salt
+- Sea salt is ONLY allowed tonight - switch to sodium-free seasoning for all 7 cleanse days
 - Review tomorrow's morning routine
 
 Morning Routine (Every Day):
