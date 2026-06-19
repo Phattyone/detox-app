@@ -66,8 +66,8 @@ module.exports = async function handler(req, res) {
     ? [{ role: 'system', content: systemText }, ...messages]
     : messages;
 
-  /* ── Forward to Groq ────────────────────────────────────────────────────── */
-  try {
+  /* ── Helper: call Groq with a given model ───────────────────────────────── */
+  async function callGroq(model) {
     const upstream = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method:  'POST',
       headers: {
@@ -75,18 +75,30 @@ module.exports = async function handler(req, res) {
         'Authorization': 'Bearer ' + apiKey,
       },
       body: JSON.stringify({
-        model:       'moonshotai/kimi-k2-instruct',
+        model,
         messages:    groqMessages,
         max_tokens:  maxTokens,
-        temperature: 0.7,
+        temperature: 0.6,
       }),
     });
+    return upstream.json();
+  }
 
-    const data = await upstream.json();
-    const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+  /* ── Forward to Groq with fallback ─────────────────────────────────────── */
+  try {
+    let data = await callGroq('moonshotai/kimi-k2-instruct');
+    let text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
 
     if (!text) {
-      console.error('Groq API unexpected response:', JSON.stringify(data));
+      console.error('Groq kimi-k2 unexpected response:', JSON.stringify(data));
+      // Retry once with the fallback model
+      console.warn('Retrying with llama-3.3-70b-versatile fallback...');
+      data = await callGroq('llama-3.3-70b-versatile');
+      text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    }
+
+    if (!text) {
+      console.error('Groq fallback also failed:', JSON.stringify(data));
       return res.status(502).json({ error: 'No response from AI service. Please try again.' });
     }
 
