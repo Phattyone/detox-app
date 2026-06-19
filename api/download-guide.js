@@ -80,15 +80,16 @@ module.exports = async function handler(req, res) {
   let arrayBuffer;
   try {
     const storageUrl = supabaseUrl +
-      '/storage/v1/object/authenticated/downloads/guides/detox-cleanse-guide.pdf';
+      '/storage/v1/object/downloads/guides/detox-cleanse-guide.pdf';
 
     const pdfResponse = await fetch(storageUrl, {
       headers: { 'Authorization': 'Bearer ' + serviceRoleKey },
     });
 
     if (!pdfResponse.ok) {
-      console.error('download-guide: storage fetch failed:', pdfResponse.status, await pdfResponse.text());
-      throw new Error('Failed to fetch PDF');
+      const errText = await pdfResponse.text();
+      console.error('download-guide: storage fetch failed:', pdfResponse.status, errText);
+      throw new Error('Failed to fetch PDF: ' + pdfResponse.status);
     }
 
     arrayBuffer = await pdfResponse.arrayBuffer();
