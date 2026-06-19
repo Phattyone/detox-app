@@ -2410,24 +2410,48 @@ async function handleSecureDownload(fileKey, btn) {
   if (btn) { btn.textContent = 'Preparing download…'; btn.disabled = true; }
 
   try {
-    // Step 4 — fetch signed URL
-    const res = await fetch('/api/get-download-url', {
-      method:  'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ file: fileKey }),
-    });
+    if (fileKey === 'guide') {
+      // Step 4a — guide: watermarked PDF streamed from /api/download-guide
+      const res = await fetch('/api/download-guide', {
+        method:  'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
 
-    const data = await res.json();
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Download failed. Please try again.');
+      }
 
-    if (!res.ok || !data.url) {
-      throw new Error(data.error || 'Download failed. Please try again.');
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = 'Detox-Cleanse-Guide.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+    } else {
+      // Step 4b — all other files: signed URL from /api/get-download-url
+      const res = await fetch('/api/get-download-url', {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ file: fileKey }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || 'Download failed. Please try again.');
+      }
+
+      // Step 5 — open signed URL in new tab
+      window.open(data.url, '_blank');
     }
-
-    // Step 5 — open signed URL in new tab
-    window.open(data.url, '_blank');
 
     // Restore button
     if (btn) { btn.textContent = originalText; btn.disabled = false; }
