@@ -16,7 +16,7 @@
 
    -- SUPABASE STORAGE SETUP --
    Bucket: downloads (private)
-   Path:   guides/detox-cleanse-guide.pdf
+   Path:   guides/Detox-Cleanse-Guide.pdf
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const { createClient }                   = require('@supabase/supabase-js');
@@ -81,7 +81,7 @@ module.exports = async function handler(req, res) {
   try {
     const { data: signedData, error: signError } = await supabase.storage
       .from('downloads')
-      .createSignedUrl('guides/detox-cleanse-guide.pdf', 60);
+      .createSignedUrl('guides/Detox-Cleanse-Guide.pdf', 60);
 
     if (signError || !signedData?.signedUrl) {
       console.error('download-guide: signed URL failed:', signError);
