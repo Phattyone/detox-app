@@ -81,7 +81,7 @@ module.exports = async function handler(req, res) {
   try {
     const { data: signedData, error: signError } = await supabase.storage
       .from('downloads')
-      .createSignedUrl('guides/Detox-Cleanse-Guide.pdf', 60);
+      .createSignedUrl('guides/Detox-Cleanse-Guide-Digital.pdf', 60);
 
     if (signError || !signedData?.signedUrl) {
       console.error('download-guide: signed URL failed:', signError);
@@ -136,7 +136,19 @@ module.exports = async function handler(req, res) {
       });
     });
 
-    pdfBytes = await pdfDoc.save();
+    pdfBytes = await pdfDoc.save({
+      userPassword:  undefined,
+      ownerPassword: 'DetoxProtect2026',
+      permissions: {
+        printing:             'lowResolution',
+        modifying:            false,
+        copying:              false,
+        annotating:           false,
+        fillingForms:         false,
+        contentAccessibility: true,
+        documentAssembly:     false,
+      },
+    });
   } catch (err) {
     console.error('download-guide: pdf-lib error:', err.message || err);
     return res.status(500).json({ error: 'Could not process guide. Please try again.' });
