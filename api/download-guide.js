@@ -79,17 +79,22 @@ module.exports = async function handler(req, res) {
   /* ── Fetch PDF from Supabase Storage ────────────────────────────────────── */
   let arrayBuffer;
   try {
-    const storageUrl = supabaseUrl +
-      '/storage/v1/object/downloads/guides/detox-cleanse-guide.pdf';
+    // Generate a short-lived signed URL
+    const { data: signedData, error: signError } = await supabase.storage
+      .from('downloads')
+      .createSignedUrl('guides/detox-cleanse-guide.pdf', 60);
 
-    const pdfResponse = await fetch(storageUrl, {
-      headers: { 'Authorization': 'Bearer ' + serviceRoleKey },
-    });
+    if (signError || !signedData?.signedUrl) {
+      console.error('download-guide: signed URL error:', signError);
+      throw new Error('Could not generate download URL');
+    }
+
+    // Fetch PDF from signed URL
+    const pdfResponse = await fetch(signedData.signedUrl);
 
     if (!pdfResponse.ok) {
-      const errText = await pdfResponse.text();
-      console.error('download-guide: storage fetch failed:', pdfResponse.status, errText);
-      throw new Error('Failed to fetch PDF: ' + pdfResponse.status);
+      console.error('download-guide: PDF fetch failed:', pdfResponse.status);
+      throw new Error('Failed to fetch PDF');
     }
 
     arrayBuffer = await pdfResponse.arrayBuffer();
