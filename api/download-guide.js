@@ -79,12 +79,19 @@ module.exports = async function handler(req, res) {
   /* ── Fetch PDF from Supabase Storage ────────────────────────────────────── */
   let arrayBuffer;
   try {
-    const { data, error } = await supabase.storage
-      .from('downloads')
-      .download('guides/detox-cleanse-guide.pdf');
+    const storageUrl = supabaseUrl +
+      '/storage/v1/object/authenticated/downloads/guides/detox-cleanse-guide.pdf';
 
-    if (error) throw error;
-    arrayBuffer = await data.arrayBuffer();
+    const pdfResponse = await fetch(storageUrl, {
+      headers: { 'Authorization': 'Bearer ' + serviceRoleKey },
+    });
+
+    if (!pdfResponse.ok) {
+      console.error('download-guide: storage fetch failed:', pdfResponse.status, await pdfResponse.text());
+      throw new Error('Failed to fetch PDF');
+    }
+
+    arrayBuffer = await pdfResponse.arrayBuffer();
   } catch (err) {
     console.error('download-guide: storage fetch failed:', err.message || err);
     return res.status(500).json({ error: 'Could not retrieve guide. Please try again.' });
