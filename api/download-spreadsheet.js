@@ -3,8 +3,8 @@
 
    Fetches the pre-built template from Supabase Storage (which already has
    the License sheet, protection settings, and {{LICENSE_TEXT}} placeholders),
-   replaces every {{LICENSE_TEXT}} occurrence with the buyer's license string,
-   adds print headers, and streams the result to the browser.
+   then does a raw zip-level find-and-replace on the XML internals so the
+   file structure is never parsed or rewritten by a spreadsheet library.
 
    POST (no body required)
    Authorization: Bearer <jwt>
@@ -21,7 +21,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const { createClient } = require('@supabase/supabase-js');
-const ExcelJS          = require('exceljs');
+const JSZip            = require('jszip');
 
 const ALLOWED_PLANS = new Set(['basic', 'seasonal', 'premium', 'lifetime']);
 
@@ -121,41 +121,45 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Could not retrieve spreadsheet. Please try again.' });
   }
 
-  /* ── Personalize ────────────────────────────────────────────────────────── */
-  let buffer;
+  /* ── Personalize via raw zip XML replacement ────────────────────────────── */
+  let outputBuffer;
   try {
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(arrayBuffer);
+    const zip = await JSZip.loadAsync(arrayBuffer);
 
-    // Replace {{LICENSE_TEXT}} placeholder in every cell across all sheets
-    workbook.worksheets.forEach(ws => {
-      ws.eachRow(row => {
-        row.eachCell(cell => {
-          if (typeof cell.value === 'string' &&
-              cell.value.includes('{{LICENSE_TEXT}}')) {
-            cell.value = cell.value.replace(/\{\{LICENSE_TEXT\}\}/g, licenseText);
-          }
-        });
-      });
+    // XML-escape the license text so it is safe inside XML string values
+    const escaped = licenseText
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+
+    const placeholder = '{{LICENSE_TEXT}}';
+
+    // Scan every XML/rels file in the zip and replace the placeholder
+    const fileNames = Object.keys(zip.files);
+    for (const fileName of fileNames) {
+      if (!fileName.endsWith('.xml') && !fileName.endsWith('.rels')) continue;
+      const content = await zip.files[fileName].async('string');
+      if (!content.includes(placeholder)) continue;
+      zip.file(fileName, content.split(placeholder).join(escaped));
+      console.log(`download-spreadsheet: replaced placeholder in ${fileName}`);
+    }
+
+    outputBuffer = await zip.generateAsync({
+      type:               'nodebuffer',
+      compression:        'DEFLATE',
+      compressionOptions: { level: 6 },
     });
 
-    // Add print header to working sheets
-    workbook.worksheets.forEach(ws => {
-      if (ws.name === 'License' || ws.name === '__DATA__') return;
-      ws.headerFooter = {
-        oddHeader: `&C&8${licenseText}`,
-      };
-    });
-
-    buffer = await workbook.xlsx.writeBuffer();
-
+    console.log('download-spreadsheet: output buffer size:', outputBuffer.length);
   } catch (err) {
-    console.error('download-spreadsheet: ExcelJS error:', err.message || err);
+    console.error('download-spreadsheet: zip error:', err.message || err);
     return res.status(500).json({ error: 'Could not process spreadsheet. Please try again.' });
   }
 
   /* ── Stream personalized xlsx to browser ────────────────────────────────── */
   res.setHeader('Content-Type',        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', 'attachment; filename="Detox-Cleanse-Tracker.xlsx"');
-  res.send(Buffer.from(buffer));
+  res.send(outputBuffer);
 };
