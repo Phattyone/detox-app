@@ -69,7 +69,7 @@ module.exports = async function handler(req, res) {
   }
 
   const email = user.email || '';
-  const name  = user.user_metadata?.name || email;
+  const name  = user.user_metadata?.full_name || user.user_metadata?.name || email;
   const plan  = user.user_metadata?.plan || 'free';
 
   /* ── Plan gate ──────────────────────────────────────────────────────────── */
