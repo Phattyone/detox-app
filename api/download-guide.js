@@ -121,7 +121,8 @@ module.exports = async function handler(req, res) {
     const pdfDoc  = await PDFDocument.load(arrayBuffer);
     const font    = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const pages   = pdfDoc.getPages();
-    const watermarkText = `Licensed to: ${name} | ${email}`;
+    const purchaseDate  = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const watermarkText = `Licensed to: ${name} | ${email} | ${purchaseDate}`;
     const fontSize      = 11;
     const color         = rgb(0.5, 0.5, 0.5);
 
