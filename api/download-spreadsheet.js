@@ -67,7 +67,7 @@ const WEEKLY_HIDDEN_FORMULAS = [
 ];
 
 const PROTECTION_OPTIONS = {
-  selectLockedCells:   true,
+  selectLockedCells:   false,
   selectUnlockedCells: false,
   formatCells:         true,
   formatColumns:       true,
@@ -205,11 +205,11 @@ module.exports = async function handler(req, res) {
     /* ── Step 3: Add License sheet as first tab ───────────────────────────── */
     const licenseSheet = workbook.addWorksheet('License', { state: 'visible' });
 
-    // Move License to position 0 (first sheet)
-    const wsArr = workbook._worksheets;
-    const lsIdx = wsArr.indexOf(licenseSheet);
-    wsArr.splice(lsIdx, 1);
-    wsArr.splice(1, 0, licenseSheet);
+    // Move License to first position
+    const sheets = workbook._worksheets.filter(Boolean);
+    const others = sheets.filter(s => s.name !== 'License');
+    workbook._worksheets = [undefined, licenseSheet, ...others];
+    workbook._worksheets.filter(Boolean).forEach((s, i) => { s.id = i + 1; });
 
     const merge = (range) => licenseSheet.mergeCells(range);
 
@@ -277,11 +277,15 @@ module.exports = async function handler(req, res) {
     workbook.worksheets.forEach(ws => {
       if (ws.name === 'License' || ws.name === '__DATA__') return;
       const cell = ws.getCell('A1');
-      if (cell.value && typeof cell.value === 'string') {
-        cell.value = cell.value + '\n' + licenseText;
+      let currentText = '';
+      if (typeof cell.value === 'string') {
+        currentText = cell.value;
+      } else if (cell.value && cell.value.richText) {
+        currentText = cell.value.richText.map(r => r.text).join('');
       }
-      // Ensure wrapText is set so third line is visible
-      cell.alignment = Object.assign({}, cell.alignment, { wrapText: true, horizontal: 'center', vertical: 'center' });
+      cell.value     = currentText + '\n' + licenseText;
+      cell.alignment = { horizontal: 'center', vertical: 'center', wrapText: true };
+      cell.font      = { bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
     });
 
     /* ── Step 5: Print header on all working sheets ───────────────────────── */
