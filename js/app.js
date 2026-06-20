@@ -2432,6 +2432,28 @@ async function handleSecureDownload(fileKey, btn) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+    } else if (fileKey === 'spreadsheet') {
+      // Step 4b — spreadsheet: personalized xlsx from /api/download-spreadsheet
+      const res = await fetch('/api/download-spreadsheet', {
+        method:  'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Download failed. Please try again.');
+      }
+
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = 'Detox-Cleanse-Tracker.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
     } else {
       // Step 4b — all other files: signed URL from /api/get-download-url
       const res = await fetch('/api/get-download-url', {
