@@ -139,13 +139,13 @@ module.exports = async function handler(req, res) {
 
     const watermarkedBytes = await pdfDoc.save();
 
-    // Apply AES-256 encryption with permissions restrictions
+    // Apply RC4 encryption — owner-only password, no open prompt
     const encryptedBytes = await encryptPDF(
       new Uint8Array(watermarkedBytes),
-      null,
+      '',
       {
         ownerPassword:   'DetoxProtect2026',
-        algorithm:       'AES-256',
+        algorithm:       'RC4',
         allowPrinting:   true,
         allowModifying:  false,
         allowCopying:    false,
