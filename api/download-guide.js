@@ -142,20 +142,14 @@ module.exports = async function handler(req, res) {
     // Apply AES-256 encryption with permissions restrictions
     const encryptedBytes = await encryptPDF(
       new Uint8Array(watermarkedBytes),
+      '',
       {
-        userPassword:  '',
-        ownerPassword: 'DetoxProtect2026',
-        keyLength:     256,
-        permissions: {
-          print:        false,
-          modify:       false,
-          copy:         false,
-          annotate:     false,
-          fillForms:    false,
-          extractText:  false,
-          assemble:     false,
-          printHighRes: false,
-        },
+        ownerPassword:   'DetoxProtect2026',
+        algorithm:       'AES-256',
+        allowPrinting:   false,
+        allowModifying:  false,
+        allowCopying:    false,
+        allowAnnotating: false,
       }
     );
     pdfBytes = Buffer.from(encryptedBytes);
