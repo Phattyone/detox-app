@@ -21,6 +21,7 @@
 
 const { createClient }                   = require('@supabase/supabase-js');
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+const { encryptPDF }                      = require('@pdfsmaller/pdf-encrypt');
 
 /* Plans that include guide download access */
 const ALLOWED_PLANS = new Set(['basic', 'seasonal', 'premium', 'lifetime']);
@@ -136,19 +137,28 @@ module.exports = async function handler(req, res) {
       });
     });
 
-    pdfBytes = await pdfDoc.save({
-      userPassword:  undefined,
-      ownerPassword: 'DetoxProtect2026',
-      permissions: {
-        printing:             'lowResolution',
-        modifying:            false,
-        copying:              false,
-        annotating:           false,
-        fillingForms:         false,
-        contentAccessibility: true,
-        documentAssembly:     false,
-      },
-    });
+    const watermarkedBytes = await pdfDoc.save();
+
+    // Apply AES-256 encryption with permissions restrictions
+    const encryptedBytes = await encryptPDF(
+      new Uint8Array(watermarkedBytes),
+      {
+        userPassword:  '',
+        ownerPassword: 'DetoxProtect2026',
+        keyLength:     256,
+        permissions: {
+          print:        false,
+          modify:       false,
+          copy:         false,
+          annotate:     false,
+          fillForms:    false,
+          extractText:  false,
+          assemble:     false,
+          printHighRes: false,
+        },
+      }
+    );
+    pdfBytes = Buffer.from(encryptedBytes);
   } catch (err) {
     console.error('download-guide: pdf-lib error:', err.message || err);
     return res.status(500).json({ error: 'Could not process guide. Please try again.' });
