@@ -2521,6 +2521,11 @@ function renderGuide() {
           onclick="showUpgradeModal('The Digital Guide is included with Premium and Lifetime plans.')">
           Unlock with Premium
         </button>
+        <div class="guide-preview-link-wrap">
+          <span class="guide-preview-link" onclick="showGuidePreviewPlaceholder()">
+            Preview first few pages
+          </span>
+        </div>
       </div>
       ${renderDownloadsHtml()}`;
     return;
@@ -2547,30 +2552,54 @@ function renderGuide() {
     ${renderDownloadsHtml()}`;
 }
 
-// Preview placeholder (Fix 1) — real preview connects to Supabase Storage in Round 3
-function showGuidePreviewPlaceholder() {
-  // -- CONNECT: SUPABASE STORAGE -- Replace with actual preview pages in Round 3
-  const existing = document.getElementById('guide-preview-placeholder');
-  if (existing) { existing.remove(); return; }
+async function showGuidePreviewPlaceholder() {
+  try {
+    const token = AUTH.access_token;
+    const headers = token
+      ? { 'Authorization': 'Bearer ' + token }
+      : {};
 
-  const el = document.createElement('div');
-  el.id = 'guide-preview-placeholder';
-  el.className = 'guide-preview-placeholder';
-  el.innerHTML = `
-    <div class="guide-preview-ph-inner">
-      <div style="font-size:32px;margin-bottom:10px">📖</div>
-      <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--dk-green);margin-bottom:6px">
-        Preview Coming Soon
-      </div>
-      <div style="font-family:var(--font-body);font-size:13px;color:var(--text-muted);font-style:italic;line-height:1.5">
-        Page previews will be available after connecting cloud storage.
-      </div>
-      <button class="auth-btn auth-btn-outline mt-12" style="font-size:13px;padding:8px 16px"
-        onclick="document.getElementById('guide-preview-placeholder').remove()">Close</button>
-    </div>`;
+    const response = await fetch(
+      '/api/get-download-url',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        },
+        body: JSON.stringify({ file: 'guide-preview' })
+      }
+    );
 
-  const card = document.querySelector('.guide-download-card');
-  if (card) card.after(el);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.url) {
+        window.open(data.url, '_blank');
+        return;
+      }
+    }
+    throw new Error('Preview unavailable');
+  } catch(e) {
+    // Fallback to placeholder message
+    const existing = document.getElementById('guide-preview-placeholder');
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.id = 'guide-preview-placeholder';
+    el.className = 'guide-preview-placeholder';
+    el.innerHTML = `
+      <div class="guide-preview-ph-inner">
+        <div class="guide-preview-ph-title">
+          Preview Unavailable
+        </div>
+        <div class="guide-preview-ph-sub">
+          Unable to load preview.
+          Please try again later.
+        </div>
+        <button class="auth-btn mt-12"
+          onclick="document.getElementById('guide-preview-placeholder').remove()">Close</button>
+      </div>`;
+    document.body.appendChild(el);
+  }
 }
 
 // Guide &amp; downloads: returns HTML for the resources section
