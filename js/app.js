@@ -2608,7 +2608,7 @@ function renderDownloadsHtml() {
       title: '7-Day Shopping List',
       desc:  'The complete ingredient checklist, organized by store section for quick in-store shopping.',
       action: hasBasic
-        ? downloadBtn(shoppingPath, '⬇ Download Shopping List', 'download-btn-basic')
+        ? secureDownloadBtn('shopping-list', '⬇ Download Shopping List', 'download-btn-basic')
         : lockBtn('The shopping list download is available on Basic and above.'),
     },
     {
@@ -2616,7 +2616,7 @@ function renderDownloadsHtml() {
       title: 'Daily Cleansing Plan Reference',
       desc:  'A printable one-page daily schedule — times, meals, supplements, and checklist in one view.',
       action: hasBasic
-        ? downloadBtn(cleansePlanPath, '⬇ Download Daily Plan', 'download-btn-basic')
+        ? secureDownloadBtn('daily-plan', '⬇ Download Daily Plan', 'download-btn-basic')
         : lockBtn('The daily plan reference is available on Basic and above.'),
     },
   ];
