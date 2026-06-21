@@ -2552,54 +2552,11 @@ function renderGuide() {
     ${renderDownloadsHtml()}`;
 }
 
-async function showGuidePreviewPlaceholder() {
-  try {
-    const token = AUTH.access_token;
-    const headers = token
-      ? { 'Authorization': 'Bearer ' + token }
-      : {};
-
-    const response = await fetch(
-      '/api/get-download-url',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...headers
-        },
-        body: JSON.stringify({ file: 'guide-preview' })
-      }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      if (data.url) {
-        window.open(data.url, '_blank');
-        return;
-      }
-    }
-    throw new Error('Preview unavailable');
-  } catch(e) {
-    // Fallback to placeholder message
-    const existing = document.getElementById('guide-preview-placeholder');
-    if (existing) existing.remove();
-    const el = document.createElement('div');
-    el.id = 'guide-preview-placeholder';
-    el.className = 'guide-preview-placeholder';
-    el.innerHTML = `
-      <div class="guide-preview-ph-inner">
-        <div class="guide-preview-ph-title">
-          Preview Unavailable
-        </div>
-        <div class="guide-preview-ph-sub">
-          Unable to load preview.
-          Please try again later.
-        </div>
-        <button class="auth-btn mt-12"
-          onclick="document.getElementById('guide-preview-placeholder').remove()">Close</button>
-      </div>`;
-    document.body.appendChild(el);
-  }
+function showGuidePreviewPlaceholder() {
+  window.open(
+    'https://iuganzmkhkvlqqidbkkw.supabase.co/storage/v1/object/public/public-assets/detox-cleanse-preview.pdf',
+    '_blank'
+  );
 }
 
 // Guide &amp; downloads: returns HTML for the resources section
