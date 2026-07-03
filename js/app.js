@@ -36,6 +36,14 @@ async function subscribeEmail(email, name) {
 }
 
 /* ── LOCAL STORAGE HELPERS ────────────────────────────────────────────────── */
+function normalizePrepChecklist(raw) {
+  const src = (raw && typeof raw === 'object') ? raw : {};
+  return {
+    checked: (src.checked && typeof src.checked === 'object') ? src.checked : {},
+    awarded: (src.awarded && typeof src.awarded === 'object') ? src.awarded : {},
+  };
+}
+
 function loadState() {
   try {
     const saved = localStorage.getItem('detox_tracker');
@@ -45,7 +53,7 @@ function loadState() {
     const savedSel = localStorage.getItem('detox_selections');
     if (savedSel) STATE.selections = JSON.parse(savedSel);
     const savedPrep = localStorage.getItem('detox_prep_checklist');
-    if (savedPrep) STATE.prepChecklist = JSON.parse(savedPrep);
+    if (savedPrep) STATE.prepChecklist = normalizePrepChecklist(JSON.parse(savedPrep));
   } catch(e) { console.warn('Could not load saved state:', e); }
 }
 
@@ -437,10 +445,11 @@ function renderHome() {
   renderCompanionWidget();
   renderDailyChallenge();
   updateCompanionDisplay();
-  applyPrepChecklist();
+  try { applyPrepChecklist(); } catch(e) { console.warn('applyPrepChecklist failed:', e); }
 }
 
 function applyPrepChecklist() {
+  STATE.prepChecklist = normalizePrepChecklist(STATE.prepChecklist);
   const items = document.querySelectorAll('#night-checklist .checklist-item');
   items.forEach(item => {
     const idx = item.dataset.index;
@@ -458,6 +467,7 @@ function togglePreCleanse() {
 }
 
 function toggleCheck(el) {
+  STATE.prepChecklist = normalizePrepChecklist(STATE.prepChecklist);
   const idx = el.dataset.index;
   const nowChecked = !STATE.prepChecklist.checked[idx];
   STATE.prepChecklist.checked[idx] = nowChecked;
@@ -2870,7 +2880,7 @@ async function handleResetCleanse() {
     } catch(e) { console.error('#reset: body_metrics clear failed', e); }
     try {
       await window.sbClient.from('profiles')
-        .update({ health_screening_complete: false, cleanse_start_date: null, prep_checklist: {} })
+        .update({ health_screening_complete: false, cleanse_start_date: null, prep_checklist: { checked: {}, awarded: {} } })
         .eq('id', AUTH.userId);
     } catch(e) { console.error('#reset: profiles clear failed', e); }
   }
@@ -2886,7 +2896,7 @@ async function handleResetCleanse() {
   STATE.water         = {};
   STATE.tracker       = {};
   STATE.selections    = {};
-  STATE.prepChecklist = { checked: {}, awarded: {} };
+  STATE.prepChecklist = normalizePrepChecklist(null);
 
   // Write a fresh default companion so any display call before the next
   // full loadState() reads zeroed values rather than the just-removed stale object.
@@ -4755,8 +4765,9 @@ async function loadCloudData() {
 
     // ── Prep checklist
     if (profileRow?.prep_checklist) {
-      STATE.prepChecklist = profileRow.prep_checklist;
-      localStorage.setItem('detox_prep_checklist', JSON.stringify(profileRow.prep_checklist));
+      const normalized = normalizePrepChecklist(profileRow.prep_checklist);
+      STATE.prepChecklist = normalized;
+      localStorage.setItem('detox_prep_checklist', JSON.stringify(normalized));
     }
 
     _cloudDataLoaded = true;
