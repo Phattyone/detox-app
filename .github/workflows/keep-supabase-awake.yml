@@ -1,0 +1,19 @@
+name: Keep Supabase Awake
+
+on:
+  schedule:
+    # Runs Mondays and Thursdays at 12:00 UTC
+    - cron: '0 12 * * 1,4'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase database
+        run: |
+          curl --fail --silent --show-error \
+            "https://iuganzmkhkvlqqidbkkw.supabase.co/rest/v1/profiles?select=id&limit=1" \
+            -H "apikey: sb_publishable_kCav2qsAp4VFb2WGBw-ZGQ_l_jaxp7I" \
+            -H "Authorization: Bearer sb_publishable_kCav2qsAp4VFb2WGBw-ZGQ_l_jaxp7I"
+          echo "Supabase pinged successfully"
