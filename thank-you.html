@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thank You | Organic Detox &amp; Cleanse</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f6f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 48px 32px;
+      text-align: center;
+      max-width: 480px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h1 {
+      color: #1B4332;
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+    p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    a {
+      color: #1B4332;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">&#x2705;</div>
+    <h1>You're confirmed!</h1>
+    <p>Your free 7-Day Shopping List is
+    downloading now. If it doesn't start
+    automatically,
+    <a href="https://iuganzmkhkvlqqidbkkw.supabase.co/storage/v1/object/public/public-assets/shopping-list.pdf"
+    download>click here to download it</a>.</p>
+    <p>Redirecting you to
+    organicdetoxcleanse.com in 5 seconds...</p>
+    <a href="https://organicdetoxcleanse.com"
+       style="display:inline-block;
+       margin-top:8px;padding:12px 24px;
+       background:#1B4332;color:white;
+       border-radius:8px;
+       text-decoration:none;
+       font-size:14px;">
+      Go to site now &rarr;
+    </a>
+  </div>
+  <script>
+    var link = document.createElement('a');
+    link.href = 'https://iuganzmkhkvlqqidbkkw.supabase.co/storage/v1/object/public/public-assets/shopping-list.pdf';
+    link.download = 'Detox-Cleanse-Shopping-List.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(function() {
+      window.location.href = 'https://organicdetoxcleanse.com';
+    }, 5000);
+  </script>
+</body>
+</html>
