@@ -448,12 +448,18 @@ function renderHome() {
   try { applyPrepChecklist(); } catch(e) { console.warn('applyPrepChecklist failed:', e); }
 }
 
+function setCheckItemState(item, checked) {
+  item.classList.toggle('checked', checked);
+  const box = item.querySelector('.check-box');
+  if (box) box.textContent = '✓';
+}
+
 function applyPrepChecklist() {
   STATE.prepChecklist = normalizePrepChecklist(STATE.prepChecklist);
   const items = document.querySelectorAll('#night-checklist .checklist-item');
   items.forEach(item => {
     const idx = item.dataset.index;
-    item.classList.toggle('checked', !!STATE.prepChecklist.checked[idx]);
+    setCheckItemState(item, !!STATE.prepChecklist.checked[idx]);
   });
 }
 
@@ -471,7 +477,7 @@ function toggleCheck(el) {
   const idx = el.dataset.index;
   const nowChecked = !STATE.prepChecklist.checked[idx];
   STATE.prepChecklist.checked[idx] = nowChecked;
-  el.classList.toggle('checked', nowChecked);
+  setCheckItemState(el, nowChecked);
 
   if (nowChecked && !STATE.prepChecklist.awarded[idx]) {
     awardPoints(POINTS_CHECKLIST_ITEM, 'checklist');
