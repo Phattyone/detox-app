@@ -2122,6 +2122,7 @@ function dismissPlanBanner() {
 
 /* ── END OF CLEANSE SUMMARY (Task 8) ─────────────────────────────────────── */
 function checkCleanseComplete() {
+  if (!isLoggedIn()) return false; // stale date while logged out: show normal home
   const day = getCleanseDay();
   return day !== null && day >= 8; // 8 = past day 7
 }
@@ -2192,8 +2193,8 @@ function renderCleanseSummary() {
         <button class="cleanse-share-btn" onclick="shareCleanse()">
           📤 Share My Results
         </button>
-        <button class="cleanse-restart-btn" onclick="restartCleanse()">
-          🔄 Start Another Cleanse
+        <button class="cleanse-restart-btn" onclick="handleResetCleanse()">
+          🔄 Start a New Cleanse
         </button>
       </div>
       <div class="cleanse-note">
