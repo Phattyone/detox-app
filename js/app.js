@@ -387,6 +387,10 @@ function maybeShowDatePicker() {
 
 /* ── HOME PAGE ────────────────────────────────────────────────────────────── */
 function renderHome() {
+  if (!document.getElementById('home-meals')) {
+    const homePage = document.getElementById('page-home');
+    if (homePage && window._homePageTemplate) homePage.innerHTML = window._homePageTemplate;
+  }
   const container = document.getElementById('home-meals');
   container.innerHTML = '';
 
@@ -2790,6 +2794,9 @@ async function handleResetCleanse() {
   if (!confirm('Reset your cleanse? This will clear your start date and health screening. Your tracker data and journal entries will be preserved.')) return;
 
   localStorage.removeItem('cleanseStartDate');
+  localStorage.removeItem('detox_water');
+  localStorage.removeItem('detox_tracker');
+  localStorage.removeItem('detox_selections');
   localStorage.removeItem(_healthKey());
   localStorage.removeItem('healthScreeningComplete'); // clear legacy key too
   localStorage.removeItem('avoidListCollapsed');
@@ -4726,6 +4733,9 @@ async function loadCloudData() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Snapshot the raw home structure before any render call so renderHome()
+  // can restore it if renderCleanseSummary() has replaced page-home's innerHTML.
+  window._homePageTemplate = document.getElementById('page-home')?.innerHTML;
   loadState();
   initAuth();
 
