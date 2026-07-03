@@ -7,6 +7,7 @@ const STATE = {
   selections: {}, // {recipeId_slotId: optionValue}
   tracker: {},    // stored in localStorage
   water: {},      // {day: count}
+  prepChecklist: { checked: {}, awarded: {} },
 };
 
 // Guard: suppresses cloud sync writes during loadCloudData() to avoid
@@ -43,6 +44,8 @@ function loadState() {
     if (savedWater) STATE.water = JSON.parse(savedWater);
     const savedSel = localStorage.getItem('detox_selections');
     if (savedSel) STATE.selections = JSON.parse(savedSel);
+    const savedPrep = localStorage.getItem('detox_prep_checklist');
+    if (savedPrep) STATE.prepChecklist = JSON.parse(savedPrep);
   } catch(e) { console.warn('Could not load saved state:', e); }
 }
 
@@ -434,6 +437,15 @@ function renderHome() {
   renderCompanionWidget();
   renderDailyChallenge();
   updateCompanionDisplay();
+  applyPrepChecklist();
+}
+
+function applyPrepChecklist() {
+  const items = document.querySelectorAll('#night-checklist .checklist-item');
+  items.forEach(item => {
+    const idx = item.dataset.index;
+    item.classList.toggle('checked', !!STATE.prepChecklist.checked[idx]);
+  });
 }
 
 function togglePreCleanse() {
@@ -446,8 +458,24 @@ function togglePreCleanse() {
 }
 
 function toggleCheck(el) {
-  el.classList.toggle('checked');
-  if (el.classList.contains('checked')) awardPoints(POINTS_CHECKLIST_ITEM, 'checklist');
+  const idx = el.dataset.index;
+  const nowChecked = !STATE.prepChecklist.checked[idx];
+  STATE.prepChecklist.checked[idx] = nowChecked;
+  el.classList.toggle('checked', nowChecked);
+
+  if (nowChecked && !STATE.prepChecklist.awarded[idx]) {
+    awardPoints(POINTS_CHECKLIST_ITEM, 'checklist');
+    STATE.prepChecklist.awarded[idx] = true;
+  }
+
+  try { localStorage.setItem('detox_prep_checklist', JSON.stringify(STATE.prepChecklist)); } catch(e) {}
+
+  if (isLoggedIn() && window.sbClient && AUTH.user) {
+    window.sbClient.from('profiles')
+      .update({ prep_checklist: STATE.prepChecklist })
+      .eq('id', AUTH.user.id)
+      .catch(() => {});
+  }
 }
 
 function toggleMealCard(mealId) {
@@ -2797,6 +2825,7 @@ async function handleResetCleanse() {
   localStorage.removeItem('detox_water');
   localStorage.removeItem('detox_tracker');
   localStorage.removeItem('detox_selections');
+  localStorage.removeItem('detox_prep_checklist');
   localStorage.removeItem(_healthKey());
   localStorage.removeItem('healthScreeningComplete'); // clear legacy key too
   localStorage.removeItem('avoidListCollapsed');
@@ -2841,7 +2870,7 @@ async function handleResetCleanse() {
     } catch(e) { console.error('#reset: body_metrics clear failed', e); }
     try {
       await window.sbClient.from('profiles')
-        .update({ health_screening_complete: false, cleanse_start_date: null })
+        .update({ health_screening_complete: false, cleanse_start_date: null, prep_checklist: {} })
         .eq('id', AUTH.userId);
     } catch(e) { console.error('#reset: profiles clear failed', e); }
   }
@@ -2854,9 +2883,10 @@ async function handleResetCleanse() {
   localStorage.removeItem('completedCleanse');
 
   // Reset in-memory STATE so nothing stale leaks into the next render cycle.
-  STATE.water      = {};
-  STATE.tracker    = {};
-  STATE.selections = {};
+  STATE.water         = {};
+  STATE.tracker       = {};
+  STATE.selections    = {};
+  STATE.prepChecklist = { checked: {}, awarded: {} };
 
   // Write a fresh default companion so any display call before the next
   // full loadState() reads zeroed values rather than the just-removed stale object.
@@ -4642,7 +4672,7 @@ async function loadCloudData() {
       sb.from('gamification').select('*').eq('user_id', userId).maybeSingle(),
       sb.from('companion_state').select('*').eq('user_id', userId).maybeSingle(),
       sb.from('past_cleanses').select('*').eq('user_id', userId),
-      sb.from('profiles').select('health_screening_complete, cleanse_start_date').eq('id', userId).maybeSingle(),
+      sb.from('profiles').select('health_screening_complete, cleanse_start_date, prep_checklist').eq('id', userId).maybeSingle(),
     ]);
 
     // ── Daily progress: water, tracker, journal, challenge completion, selections
@@ -4721,6 +4751,12 @@ async function loadCloudData() {
     if (profileRow?.cleanse_start_date) {
       localStorage.setItem('cleanseStartDate', profileRow.cleanse_start_date);
       localStorage.setItem('cleanseUserId', userId);
+    }
+
+    // ── Prep checklist
+    if (profileRow?.prep_checklist) {
+      STATE.prepChecklist = profileRow.prep_checklist;
+      localStorage.setItem('detox_prep_checklist', JSON.stringify(profileRow.prep_checklist));
     }
 
     _cloudDataLoaded = true;
