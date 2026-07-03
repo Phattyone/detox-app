@@ -46,10 +46,10 @@
     <p>Your free 7-Day Shopping List is
     downloading now. If it doesn't start
     automatically,
-    <a href="https://iuganzmkhkvlqqidbkkw.supabase.co/storage/v1/object/public/public-assets/shopping-list.pdf"
-    download>click here to download it</a>.</p>
+    <a href="https://iuganzmkhkvlqqidbkkw.supabase.co/storage/v1/object/public/public-assets/shopping-list.pdf?download=Shopping_List.pdf"
+    >click here to download it</a>.</p>
     <p>Redirecting you to
-    organicdetoxcleanse.com in 5 seconds...</p>
+    organicdetoxcleanse.com in 7 seconds...</p>
     <a href="https://organicdetoxcleanse.com"
        style="display:inline-block;
        margin-top:8px;padding:12px 24px;
@@ -61,16 +61,16 @@
     </a>
   </div>
   <script>
-    var link = document.createElement('a');
-    link.href = 'https://iuganzmkhkvlqqidbkkw.supabase.co/storage/v1/object/public/public-assets/shopping-list.pdf';
-    link.download = 'Detox-Cleanse-Shopping-List.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Trigger download via hidden iframe so this page and its countdown stay visible.
+    // The ?download= param tells Supabase to serve Content-Disposition: attachment.
+    var dl = document.createElement('iframe');
+    dl.style.display = 'none';
+    dl.src = 'https://iuganzmkhkvlqqidbkkw.supabase.co/storage/v1/object/public/public-assets/shopping-list.pdf?download=Shopping_List.pdf';
+    document.body.appendChild(dl);
 
     setTimeout(function() {
       window.location.href = 'https://organicdetoxcleanse.com';
-    }, 5000);
+    }, 7000);
   </script>
 </body>
 </html>
