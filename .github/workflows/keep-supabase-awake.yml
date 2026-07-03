@@ -15,9 +15,12 @@ jobs:
           KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1Z2Fuem1raGt2bHFxaWRia2t3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MzA5OTQsImV4cCI6MjA5NjQwNjk5NH0.24UV61IVhPJ3-fWdSIfh9yk18643ud5U77-iNgQ_xwc"
           echo "Key length: ${#KEY}"
           STATUS=$(curl -s -o /tmp/body.txt -w "%{http_code}" \
-            "https://iuganzmkhkvlqqidbkkw.supabase.co/rest/v1/" \
+            -X POST \
+            "https://iuganzmkhkvlqqidbkkw.supabase.co/rest/v1/rpc/keep_alive" \
             -H "apikey: $KEY" \
-            -H "Authorization: Bearer $KEY")
+            -H "Authorization: Bearer $KEY" \
+            -H "Content-Type: application/json" \
+            -d '{}')
           echo "HTTP status: $STATUS"
           if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]; then
             echo "Supabase pinged successfully"
