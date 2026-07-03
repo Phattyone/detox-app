@@ -480,11 +480,12 @@ function toggleCheck(el) {
 
   try { localStorage.setItem('detox_prep_checklist', JSON.stringify(STATE.prepChecklist)); } catch(e) {}
 
-  if (isLoggedIn() && window.sbClient && AUTH.user) {
+  if (isLoggedIn() && window.sbClient && AUTH.userId) {
     window.sbClient.from('profiles')
       .update({ prep_checklist: STATE.prepChecklist })
-      .eq('id', AUTH.user.id)
-      .catch(() => {});
+      .eq('id', AUTH.userId)
+      .then(() => {})
+      .catch(e => console.warn('[sync] prep_checklist push failed:', e));
   }
 }
 
