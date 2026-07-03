@@ -589,8 +589,11 @@ async function handleSignIn() {
     if (typeof loadCloudData === 'function') {
       loadCloudData().then(() => {
         if (typeof loadState    === 'function') loadState();
+        const autoDay = (typeof getCleanseDay === 'function') ? getCleanseDay() : null;
+        if (autoDay && autoDay <= 7) STATE.activeDay = autoDay;
         if (typeof renderHome   === 'function') renderHome();
         if (typeof applyContentGating === 'function') applyContentGating();
+        if (typeof startOnboardingFlow === 'function') startOnboardingFlow();
       }).catch(() => {
         if (typeof renderHome   === 'function') renderHome();
       });
@@ -1482,11 +1485,11 @@ async function _initSupabaseSession() {
       // Does not trigger auth calls or session init.
       if (typeof loadCloudData === 'function') {
         loadCloudData().then(() => {
-          // Re-read STATE from localStorage so water/tracker reflect cloud data.
           if (typeof loadState === 'function') loadState();
+          const autoDay = (typeof getCleanseDay === 'function') ? getCleanseDay() : null;
+          if (autoDay && autoDay <= 7) STATE.activeDay = autoDay;
           if (typeof renderHome === 'function') renderHome();
           if (typeof applyContentGating === 'function') applyContentGating();
-          // AUTH.userId is guaranteed populated here — safe to check onboarding.
           if (typeof startOnboardingFlow === 'function') startOnboardingFlow();
         }).catch(() => {});
       }
