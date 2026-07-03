@@ -591,7 +591,11 @@ async function handleSignIn() {
         if (typeof loadState    === 'function') loadState();
         const autoDay = (typeof getCleanseDay === 'function') ? getCleanseDay() : null;
         if (autoDay && autoDay <= 7) STATE.activeDay = autoDay;
-        if (typeof renderHome   === 'function') renderHome();
+        if (typeof checkCleanseComplete === 'function' && checkCleanseComplete()) {
+          if (typeof renderCleanseSummary === 'function') renderCleanseSummary();
+        } else {
+          if (typeof renderHome   === 'function') renderHome();
+        }
         if (typeof applyContentGating === 'function') applyContentGating();
         if (typeof startOnboardingFlow === 'function') startOnboardingFlow();
       }).catch(() => {
@@ -1488,7 +1492,11 @@ async function _initSupabaseSession() {
           if (typeof loadState === 'function') loadState();
           const autoDay = (typeof getCleanseDay === 'function') ? getCleanseDay() : null;
           if (autoDay && autoDay <= 7) STATE.activeDay = autoDay;
-          if (typeof renderHome === 'function') renderHome();
+          if (typeof checkCleanseComplete === 'function' && checkCleanseComplete()) {
+            if (typeof renderCleanseSummary === 'function') renderCleanseSummary();
+          } else {
+            if (typeof renderHome === 'function') renderHome();
+          }
           if (typeof applyContentGating === 'function') applyContentGating();
           if (typeof startOnboardingFlow === 'function') startOnboardingFlow();
         }).catch(() => {});
