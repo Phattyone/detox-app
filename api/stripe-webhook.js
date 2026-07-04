@@ -101,9 +101,21 @@ const handler = async function (req, res) {
   /* ── Handle events ──────────────────────────────────────────────────────── */
 
   if (event.type === 'checkout.session.completed') {
-    const session    = event.data.object;
-    const userId     = session.metadata?.userId;
-    const priceId    = session.metadata?.priceId;
+    // Retrieve the full session with line_items so the price ID is available
+    // even for checkouts created by create-checkout-session.js, which does not
+    // copy the price ID into session metadata.
+    let session = event.data.object;
+    try {
+      session = await stripe.checkout.sessions.retrieve(event.data.object.id, { expand: ['line_items'] });
+    } catch (retrieveErr) {
+      console.error('stripe-webhook: failed to retrieve full session, falling back to event payload:', retrieveErr);
+    }
+
+    // Accept both metadata shapes: supabase_user_id (create-checkout-session.js)
+    // and userId (stripe-checkout.js). The price ID may come from line_items
+    // (new path) or metadata.priceId (old path).
+    const userId     = session.metadata?.supabase_user_id || session.metadata?.userId;
+    const priceId    = session.line_items?.data?.[0]?.price?.id || session.metadata?.priceId;
     const customerId = session.customer;
 
     if (!userId || !priceId) {
@@ -117,12 +129,18 @@ const handler = async function (req, res) {
       return res.status(400).json({ error: `Unknown priceId: ${priceId}` });
     }
 
-    // Store stripe_customer_id so subscription.deleted can find the user
+    // Store stripe_customer_id so subscription.deleted can find the user.
+    // Also record the price ID for every completed checkout, and the
+    // subscription ID when this checkout created a subscription.
     if (customerId) {
-      await supabase
+      const idUpdate = { stripe_customer_id: customerId, stripe_price_id: priceId };
+      if (session.subscription) idUpdate.stripe_subscription_id = session.subscription;
+      const { error: idErr } = await supabase
         .from('profiles')
-        .update({ stripe_customer_id: customerId })
+        .update(idUpdate)
         .eq('id', userId);
+      if (idErr) console.error('stripe-webhook: profiles customer/price update failed:', idErr);
+      else console.log(`stripe-webhook: recorded stripe ids for userId=${userId}, priceId=${priceId}`);
     }
 
     if (SUBSCRIPTION_PLANS.has(plan)) {
@@ -157,27 +175,34 @@ const handler = async function (req, res) {
     const subscription = event.data.object;
     const customerId   = subscription.customer;
 
-    // Find the user by stored Stripe customer ID
-    const { data: profile, error: lookupErr } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('stripe_customer_id', customerId)
-      .single();
+    // Prefer supabase_user_id from the subscription metadata, set by
+    // create-checkout-session.js. Fall back to the stored stripe_customer_id
+    // lookup for subscriptions created by the older checkout path.
+    let userId = subscription.metadata?.supabase_user_id;
 
-    if (lookupErr || !profile) {
-      console.warn('stripe-webhook: customer.subscription.deleted — user not found for customerId:', customerId);
-      return res.status(200).json({ received: true }); // return 200 so Stripe doesn't retry
+    if (!userId) {
+      // Find the user by stored Stripe customer ID
+      const { data: profile, error: lookupErr } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('stripe_customer_id', customerId)
+        .single();
+
+      if (lookupErr || !profile) {
+        console.warn('stripe-webhook: customer.subscription.deleted — user not found for customerId:', customerId);
+        return res.status(200).json({ received: true }); // return 200 so Stripe doesn't retry
+      }
+
+      userId = profile.id;
     }
 
-    const userId = profile.id;
-
-    // Downgrade to free plan
+    // Downgrade to free plan and clear the subscription references
     await supabase.auth.admin.updateUserById(userId, {
       user_metadata: { plan: 'free' },
     });
     const { error } = await supabase
       .from('profiles')
-      .update({ plan: 'free' })
+      .update({ plan: 'free', stripe_subscription_id: null, stripe_price_id: null })
       .eq('id', userId);
     if (error) console.error('stripe-webhook: profiles downgrade failed:', error);
 
