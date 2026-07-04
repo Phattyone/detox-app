@@ -2810,6 +2810,9 @@ function openCoachChat() {
     COACH.messages.push({ role: 'assistant', content: "Hi! I'm your Cleanse Coach. I'm here to help you through the 7-Day Organic Vegan Detox & Cleanse. What questions do you have?" });
   }
 
+  // Show daily limit countdown if applicable
+  updateCoachLimitDisplay();
+
   // Focus input
   setTimeout(() => {
     const input = document.getElementById('coach-chat-input');
@@ -2822,6 +2825,19 @@ function closeCoachChat() {
   if (modal) modal.style.display = 'none';
 }
 
+async function updateCoachLimitDisplay() {
+  const plan = AUTH.plan || 'free';
+  const dailyLimit = (window.AI_COACH_DAILY_LIMITS || {})[plan] || 0;
+  if (dailyLimit === 0 || dailyLimit >= 999) return;
+  const usage = await getCoachUsage();
+  const remaining = Math.max(0, dailyLimit - usage.count);
+  const el = document.getElementById('coach-limit-display');
+  if (!el) return;
+  el.textContent = remaining + ' message' + (remaining === 1 ? '' : 's') + ' remaining today. Resets at midnight UTC.';
+  el.style.display = remaining > 0 ? 'block' : 'none';
+}
+window.updateCoachLimitDisplay = updateCoachLimitDisplay;
+
 async function sendCoachMessage() {
   const input = document.getElementById('coach-chat-input');
   const text  = input ? input.value.trim() : '';
@@ -2831,6 +2847,17 @@ async function sendCoachMessage() {
   if (typeof API !== 'undefined' && API.isRateLimited()) {
     appendCoachMessage('assistant', "You've reached the session limit — come back tomorrow! Your questions are always welcome. 🌿");
     return;
+  }
+
+  // Daily plan limit check
+  const plan = AUTH.plan || 'free';
+  const dailyLimit = (window.AI_COACH_DAILY_LIMITS || {})[plan] || 0;
+  if (dailyLimit > 0) {
+    const usage = await getCoachUsage();
+    if (usage.count >= dailyLimit) {
+      appendCoachMessage('assistant', 'You have reached your daily message limit. It resets at midnight UTC.');
+      return;
+    }
   }
 
   // Show user message
@@ -2863,6 +2890,10 @@ async function sendCoachMessage() {
     if (dotsEl) dotsEl.remove();
 
     appendCoachMessage('assistant', reply);
+
+    // Increment daily usage counter
+    const afterUsage = await getCoachUsage();
+    await updateCoachUsage(afterUsage.count + 1);
   } catch(err) {
     const dotsEl = document.getElementById(dotId);
     if (dotsEl) dotsEl.remove();
@@ -2876,6 +2907,7 @@ async function sendCoachMessage() {
     COACH.isLoading = false;
     if (sendBtn) sendBtn.disabled = false;
     if (input)   input.focus();
+    if (typeof updateCoachLimitDisplay === 'function') updateCoachLimitDisplay();
   }
 }
 
@@ -2894,6 +2926,44 @@ function appendCoachMessage(role, text) {
   container.scrollTop = container.scrollHeight;
 }
 
+
+/* ── AI COACH USAGE TRACKING ─────────────────────────────────────────────── */
+
+function getTodayUTC() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+async function getCoachUsage() {
+  if (!AUTH.user) return { date: getTodayUTC(), count: 0 };
+  try {
+    const { data, error } = await window.sbClient
+      .from('profiles')
+      .select('ai_coach_usage')
+      .eq('id', AUTH.userId)
+      .single();
+    if (error || !data) return { date: getTodayUTC(), count: 0 };
+    const usage = data.ai_coach_usage || { date: '', count: 0 };
+    if (usage.date !== getTodayUTC()) return { date: getTodayUTC(), count: 0 };
+    return usage;
+  } catch (e) {
+    console.warn('getCoachUsage error:', e);
+    return { date: getTodayUTC(), count: 0 };
+  }
+}
+
+async function updateCoachUsage(newCount) {
+  if (!AUTH.user) return;
+  const payload = { date: getTodayUTC(), count: newCount };
+  window.sbClient
+    .from('profiles')
+    .update({ ai_coach_usage: payload })
+    .eq('id', AUTH.userId)
+    .then(() => {})
+    .catch(e => console.warn('updateCoachUsage error:', e));
+}
+
+window.getCoachUsage    = getCoachUsage;
+window.updateCoachUsage = updateCoachUsage;
 
 /* ── RESET CLEANSE (Fix 2) ────────────────────────────────────────────────── */
 

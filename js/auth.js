@@ -219,6 +219,17 @@ const ACCESS = {
   tester:   [...ALL_PAID, 'advanced', 'tester', 'ai-coach', 'guide-pdf', 'downloads-premium'],
 };
 
+const AI_COACH_DAILY_LIMITS = {
+  free:     0,
+  basic:    1,
+  seasonal: 3,
+  premium:  7,
+  lifetime: 7,
+  admin:    999,
+  tester:   999,
+};
+window.AI_COACH_DAILY_LIMITS = AI_COACH_DAILY_LIMITS;
+
 /* ── AUTH STATE ───────────────────────────────────────────────────────────── */
 const AUTH = {
   user:    null,   // { id, email, name, role }
