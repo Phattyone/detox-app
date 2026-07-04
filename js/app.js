@@ -4689,7 +4689,7 @@ async function loadCloudData() {
       sb.from('gamification').select('*').eq('user_id', userId).maybeSingle(),
       sb.from('companion_state').select('*').eq('user_id', userId).maybeSingle(),
       sb.from('past_cleanses').select('*').eq('user_id', userId),
-      sb.from('profiles').select('health_screening_complete, cleanse_start_date, prep_checklist').eq('id', userId).maybeSingle(),
+      sb.from('profiles').select('health_screening_complete, cleanse_start_date, prep_checklist, plan').eq('id', userId).maybeSingle(),
     ]);
 
     // ── Daily progress: water, tracker, journal, challenge completion, selections
@@ -4775,6 +4775,11 @@ async function loadCloudData() {
       const normalized = normalizePrepChecklist(profileRow.prep_checklist);
       STATE.prepChecklist = normalized;
       localStorage.setItem('detox_prep_checklist', JSON.stringify(normalized));
+    }
+
+    // ── Plan (database row is authoritative after a Stripe checkout webhook write)
+    if (profileRow && profileRow.plan) {
+      AUTH.plan = profileRow.plan;
     }
 
     _cloudDataLoaded = true;

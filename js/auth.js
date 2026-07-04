@@ -608,6 +608,12 @@ async function handleSignIn() {
           if (typeof renderHome   === 'function') renderHome();
         }
         if (typeof applyContentGating === 'function') applyContentGating();
+        // Re-render open modal screens so they reflect the plan loaded from the database.
+        const _authModal = document.getElementById('auth-modal');
+        if (_authModal && _authModal.classList.contains('active')) {
+          if (document.getElementById('auth-pricing')?.classList.contains('active')) renderPricingScreen();
+          if (document.getElementById('auth-account')?.classList.contains('active')) renderAccountScreen();
+        }
         if (typeof startOnboardingFlow === 'function') startOnboardingFlow();
       }).catch(() => {
         if (typeof renderHome   === 'function') renderHome();
@@ -1513,6 +1519,12 @@ async function _initSupabaseSession() {
             if (typeof renderHome === 'function') renderHome();
           }
           if (typeof applyContentGating === 'function') applyContentGating();
+          // Re-render open modal screens so they reflect the plan loaded from the database.
+          const _authModal = document.getElementById('auth-modal');
+          if (_authModal && _authModal.classList.contains('active')) {
+            if (document.getElementById('auth-pricing')?.classList.contains('active')) renderPricingScreen();
+            if (document.getElementById('auth-account')?.classList.contains('active')) renderAccountScreen();
+          }
           if (typeof startOnboardingFlow === 'function') startOnboardingFlow();
         }).catch(() => {});
       }
