@@ -446,6 +446,7 @@ function renderHome() {
   renderDailyChallenge();
   updateCompanionDisplay();
   try { applyPrepChecklist(); } catch(e) { console.warn('applyPrepChecklist failed:', e); }
+  renderAdvancedCleanse();
 }
 
 function setCheckItemState(item, checked) {
@@ -735,7 +736,6 @@ const JOURNAL_MOODS = ['😩','😕','😐','🙂','😊'];
 function renderTracker() {
   renderTrackerDayTabs();
   renderPastCleanses();    // inject after day tabs for advanced users
-  renderAdvancedCleanse(); // coming soon card for seasonal, premium, lifetime
   renderMetrics();
   renderPhotos();       // Task 3: progress photos (Basic+)
   renderWellness();
@@ -836,8 +836,8 @@ function renderAdvancedCleanse() {
   // Visible to seasonal, premium, and lifetime only (guide-pdf distinguishes from basic/free)
   if (!canAccess('guide-pdf')) return;
 
-  const dayTabsEl = document.getElementById('tracker-day-tabs');
-  if (!dayTabsEl) return;
+  const anchorEl = document.getElementById('tracker-day-tabs') || document.getElementById('home-meals');
+  if (!anchorEl) return;
 
   const section = document.createElement('div');
   section.id = 'advanced-cleanse-section';
@@ -850,12 +850,12 @@ function renderAdvancedCleanse() {
       <div class="callout-text">A deeper, more intensive cleanse program. Stay tuned.</div>
     </div>`;
 
-  // Insert after past cleanses if present, otherwise directly after day tabs
+  // Insert after past cleanses if present, otherwise directly after anchor
   const pastCleansesSection = document.getElementById('past-cleanses-section');
   if (pastCleansesSection) {
     pastCleansesSection.after(section);
   } else {
-    dayTabsEl.after(section);
+    anchorEl.after(section);
   }
 }
 
@@ -945,18 +945,22 @@ function updateDayBtnStates() {
       case 'future':
         btn.classList.add('day-btn-future');
         if (dayLabelEl) dayLabelEl.textContent = 'Day';
-        {
+        if (canAccess('days2to7')) {
           const unlockDate = getDayDate(dayNum);
           const msg = unlockDate
             ? `Day ${dayNum} unlocks on ${unlockDate}`
             : `Day ${dayNum} hasn't started yet`;
           btn.onclick = () => showDayToast(msg);
         }
+        // else: free user -- onclick already set by gateMealCards (showUpgradeModal)
         break;
 
-      default: // 'normal' — no start date
+      default: // 'normal' -- no start date
         if (dayLabelEl) dayLabelEl.textContent = 'Day';
-        btn.onclick = () => updateDayProgress(dayNum);
+        if (dayNum === 1 || canAccess('days2to7')) {
+          btn.onclick = () => updateDayProgress(dayNum);
+        }
+        // else: free user on day 2-7 -- onclick already set by gateMealCards
         break;
     }
   });
@@ -1040,7 +1044,7 @@ function renderTrackerDayTabs() {
     }
 
     const activeClass = (isActive && state !== 'future') ? ' active' : '';
-    return `<div class="day-tab ${extraClass}${activeClass}"
+    return `<div class="day-tab day-btn ${extraClass}${activeClass}"
                  onclick="${onclick}"
                  ${title ? `title="${title}"` : ''}
             >Day ${dayNum}${badge}</div>`;
@@ -1860,6 +1864,12 @@ function gateMealCards() {
       const header = card.querySelector('.meal-card-header');
       if (header) {
         header.onclick = () => showUpgradeModal('Unlock the full 7-day meal plan with any paid plan.');
+        if (!header.querySelector('.card-lock-icon')) {
+          const lockIcon = document.createElement('span');
+          lockIcon.className = 'card-lock-icon';
+          lockIcon.textContent = '🔒';
+          header.appendChild(lockIcon);
+        }
       }
       // Inject lock card into body
       body.innerHTML = lockCard(
@@ -1890,6 +1900,12 @@ function gateMealCards() {
       if (i >= 1) {
         btn.classList.add('day-btn-future');
         btn.onclick = () => showUpgradeModal('Unlock the full 7-day meal plan to access all days.');
+        if (!btn.querySelector('.day-btn-lock')) {
+          const lockSpan = document.createElement('span');
+          lockSpan.className = 'day-btn-lock';
+          lockSpan.textContent = ' 🔒';
+          btn.appendChild(lockSpan);
+        }
       }
     });
   }
@@ -2091,6 +2107,12 @@ function gateTracker() {
         e.stopPropagation();
         showUpgradeModal('Upgrade to unlock all 7 days of tracking.');
       };
+      if (!tab.querySelector('.day-tab-lock')) {
+        const lockSpan = document.createElement('span');
+        lockSpan.className = 'day-tab-lock';
+        lockSpan.textContent = ' 🔒';
+        tab.appendChild(lockSpan);
+      }
     }
   });
 
@@ -4195,6 +4217,12 @@ function gateCompanionWidget() {
 
   const pointsEl = document.getElementById('companion-points-today');
   if (pointsEl) pointsEl.style.filter = 'blur(4px)';
+
+  const streakEl = document.getElementById('companion-streak');
+  if (streakEl) streakEl.style.filter = 'blur(4px)';
+
+  const alltimeEl = document.getElementById('companion-alltime');
+  if (alltimeEl) alltimeEl.style.filter = 'blur(4px)';
 
   const tapBtn = document.getElementById('companion-tap-btn');
   if (tapBtn) {
