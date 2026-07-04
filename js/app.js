@@ -836,7 +836,7 @@ function renderAdvancedCleanse() {
   // Visible to seasonal, premium, and lifetime only (guide-pdf distinguishes from basic/free)
   if (!canAccess('guide-pdf')) return;
 
-  const anchorEl = document.getElementById('tracker-day-tabs') || document.getElementById('home-meals');
+  const anchorEl = document.getElementById('home-meals');
   if (!anchorEl) return;
 
   const section = document.createElement('div');
