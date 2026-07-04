@@ -440,45 +440,56 @@ async function forgotPassword(email) {
   return true; // Always show success — don't reveal whether the email exists
 }
 
-async function startCheckout(priceId, mode) {
+async function startCheckout(priceId) {
   if (!isLoggedIn()) {
-    navigateAuth('signup');
+    navigateAuth('login');
     return;
   }
 
-  const token = AUTH.access_token;
-  if (!token) return;
+  const userId    = AUTH.userId;
+  const userEmail = AUTH.user && AUTH.user.email;
+  if (!userId || !userEmail) return;
 
-  const btn = event?.target;
+  const btn = (typeof event !== 'undefined' && event && event.target instanceof Element)
+    ? event.target
+    : null;
+
   if (btn) {
-    btn.disabled    = true;
-    btn.textContent = 'Loading...';
+    btn.disabled = true;
+    btn.dataset.originalText = btn.dataset.originalText || btn.textContent;
+    btn.textContent = 'Please wait...';
+  }
+
+  function showCheckoutError(message) {
+    if (btn) {
+      btn.disabled    = false;
+      btn.textContent = btn.dataset.originalText || 'Choose Plan';
+      const errEl = document.createElement('div');
+      errEl.style.cssText = 'color:#DC2626;font-size:12px;margin-top:6px;text-align:center;';
+      errEl.textContent = message;
+      btn.parentNode.insertBefore(errEl, btn.nextSibling);
+      setTimeout(function() { errEl.remove(); }, 4000);
+    }
   }
 
   try {
-    const response = await fetch('/api/stripe-checkout', {
+    const response = await fetch('/api/create-checkout-session', {
       method:  'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Content-Type':  'application/json',
-      },
-      body: JSON.stringify({ priceId, mode }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priceId, userId, userEmail }),
     });
 
     const data = await response.json();
 
-    if (data.url) {
+    if (response.ok && data.url) {
       window.location.href = data.url;
     } else {
-      throw new Error(data.error || 'Checkout failed');
+      console.error('Checkout error:', data.error);
+      showCheckoutError('Something went wrong. Please try again.');
     }
   } catch (err) {
-    console.error('Checkout error:', err);
-    alert('Unable to start checkout. Please try again.');
-    if (btn) {
-      btn.disabled    = false;
-      btn.textContent = 'Upgrade';
-    }
+    console.error('Checkout network error:', err);
+    showCheckoutError('Something went wrong. Please try again.');
   }
 }
 
@@ -643,8 +654,15 @@ async function handleSelectPlan(planId) {
     navigateAuth('signup');
     return;
   }
-  navigateAuth('payment');
-  renderPaymentScreen(planId);
+  // Paid plans go directly to Stripe Checkout
+  const planPriceIds = {
+    basic:    'price_1TiGwgFVIq4JLJVkXkxIkaHO',
+    seasonal: 'price_1TiGxVFVIq4JLJVkOzQ8G7Pd',
+    premium:  'price_1TiGyNFVIq4JLJVk5zkbySPB',
+    lifetime: 'price_1TiHP1FVIq4JLJVkfx3WizFV',
+  };
+  const priceId = planPriceIds[planId];
+  if (priceId) startCheckout(priceId);
 }
 
 async function handlePayment(planId) {
@@ -1079,9 +1097,9 @@ function renderPricingScreen() {
 
     // Build plan-specific button(s) — paid plans go direct to Stripe Checkout
     const PLAN_STRIPE = {
-      basic:    ['price_1TiGwgFVIq4JLJVkXkxIkaHO', 'subscription'],
-      seasonal: ['price_1TiGxVFVIq4JLJVkOzQ8G7Pd', 'subscription'],
-      lifetime: ['price_1TiHP1FVIq4JLJVkfx3WizFV', 'payment'],
+      basic:    'price_1TiGwgFVIq4JLJVkXkxIkaHO',
+      seasonal: 'price_1TiGxVFVIq4JLJVkOzQ8G7Pd',
+      lifetime: 'price_1TiHP1FVIq4JLJVkfx3WizFV',
     };
     let btnHtml;
     if (isCurrentPlan) {
@@ -1090,12 +1108,12 @@ function renderPricingScreen() {
       btnHtml = `<button class="plan-btn" onclick="handleSelectPlan('free')">${plan.ctaLabel || 'Get Started Free'}</button>`;
     } else if (planId === 'premium') {
       btnHtml = `
-        <button class="plan-btn" onclick="startCheckout('price_1TiGxuFVIq4JLJVkbhJdXGHp','subscription')">Monthly</button>
-        <button class="plan-btn" style="margin-top:8px" onclick="startCheckout('price_1TiGyNFVIq4JLJVk5zkbySPB','subscription')">Annual <em>(save ~17%)</em></button>`;
+        <button class="plan-btn" onclick="startCheckout('price_1TiGxuFVIq4JLJVkbhJdXGHp')">Monthly</button>
+        <button class="plan-btn" style="margin-top:8px" onclick="startCheckout('price_1TiGyNFVIq4JLJVk5zkbySPB')">Annual <em>(save ~17%)</em></button>`;
     } else {
-      const [priceId, mode] = PLAN_STRIPE[planId] || [];
+      const priceId = PLAN_STRIPE[planId];
       btnHtml = priceId
-        ? `<button class="plan-btn" onclick="startCheckout('${priceId}','${mode}')">${plan.ctaLabel || 'Choose Plan'}</button>`
+        ? `<button class="plan-btn" onclick="startCheckout('${priceId}')">${plan.ctaLabel || 'Choose Plan'}</button>`
         : `<button class="plan-btn" onclick="handleSelectPlan('${planId}')">${plan.ctaLabel || 'Choose Plan'}</button>`;
     }
 
@@ -1157,18 +1175,14 @@ function renderPricingScreen() {
 function handleAddonPurchase(addonId) {
   if (!isLoggedIn()) { navigateAuth('signup'); return; }
 
-  if (addonId === 'physical-guide') {
-    alert('Physical Guide — $26.99\n\nAvailable on Amazon KDP.\nLink coming soon.');
-    return;
-  }
-
   const addonPrices = {
-    guide:       ['price_1TiHCtFVIq4JLJVkVZLwKxQD', 'payment'],
-    spreadsheet: ['price_1TiHDHFVIq4JLJVklAq7dWKX', 'payment'],
-    bundle:      ['price_1TiH0sFVIq4JLJVkQimq6F7h', 'payment'],
+    guide:            'price_1TiHCtFVIq4JLJVkVZLwKxQD',
+    spreadsheet:      'price_1TiHDHFVIq4JLJVklAq7dWKX',
+    bundle:           'price_1TiH0sFVIq4JLJVkQimq6F7h',
+    'physical-guide': 'price_1TiH7yFVIq4JLJVkxeKtC00D',
   };
-  const [priceId, mode] = addonPrices[addonId] || [];
-  if (priceId) startCheckout(priceId, mode);
+  const priceId = addonPrices[addonId];
+  if (priceId) startCheckout(priceId);
 }
 
 /* ── UPDATE UI BASED ON AUTH STATE ────────────────────────────────────────── */
@@ -1450,6 +1464,7 @@ window.signOut                = signOut;
 window.handleSignIn           = handleSignIn;
 window.handleSignUp           = handleSignUp;
 window.handleForgotPassword   = handleForgotPassword;
+window.startCheckout          = startCheckout;
 window.handleSelectPlan       = handleSelectPlan;
 window.handleAddonPurchase    = handleAddonPurchase;
 window.updateAuthUI           = updateAuthUI;

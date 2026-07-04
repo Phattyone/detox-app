@@ -37,10 +37,31 @@
       color: #1B4332;
       font-weight: bold;
     }
+    .go-btn {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 12px 24px;
+      background: #1B4332;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
+
+  <!-- Payment success state (shown when ?session_id= is present) -->
+  <div id="state-payment" class="card" style="display:none">
+    <div class="icon">&#x2705;</div>
+    <h1>Payment successful!</h1>
+    <p>Thank you for your purchase. Your account will be updated shortly.</p>
+    <p>Redirecting you to the program in 7 seconds...</p>
+    <a href="https://organicdetoxcleanse.com" class="go-btn">Start the program now &rarr;</a>
+  </div>
+
+  <!-- Download / email capture state (shown when no session_id param) -->
+  <div id="state-download" class="card" style="display:none">
     <div class="icon">&#x2705;</div>
     <h1>You're confirmed!</h1>
     <p>Your free 7-Day Shopping List is
@@ -50,23 +71,27 @@
     >click here to download it</a>.</p>
     <p>Redirecting you to
     organicdetoxcleanse.com in 7 seconds...</p>
-    <a href="https://organicdetoxcleanse.com"
-       style="display:inline-block;
-       margin-top:8px;padding:12px 24px;
-       background:#1B4332;color:white;
-       border-radius:8px;
-       text-decoration:none;
-       font-size:14px;">
+    <a href="https://organicdetoxcleanse.com" class="go-btn">
       Go to site now &rarr;
     </a>
   </div>
+
   <script>
-    // Trigger download via hidden iframe so this page and its countdown stay visible.
-    // The ?download= param tells Supabase to serve Content-Disposition: attachment.
-    var dl = document.createElement('iframe');
-    dl.style.display = 'none';
-    dl.src = 'https://iuganzmkhkvlqqidbkkw.supabase.co/storage/v1/object/public/public-assets/shopping-list.pdf?download=Shopping_List.pdf';
-    document.body.appendChild(dl);
+    var params    = new URLSearchParams(window.location.search);
+    var sessionId = params.get('session_id');
+
+    if (sessionId) {
+      // Stripe checkout completed — show payment success, no download.
+      document.getElementById('state-payment').style.display = 'block';
+    } else {
+      // Email capture or direct visit — show download and redirect.
+      document.getElementById('state-download').style.display = 'block';
+      // Trigger download via hidden iframe so this page and its countdown stay visible.
+      var dl = document.createElement('iframe');
+      dl.style.display = 'none';
+      dl.src = 'https://iuganzmkhkvlqqidbkkw.supabase.co/storage/v1/object/public/public-assets/shopping-list.pdf?download=Shopping_List.pdf';
+      document.body.appendChild(dl);
+    }
 
     setTimeout(function() {
       window.location.href = 'https://organicdetoxcleanse.com';

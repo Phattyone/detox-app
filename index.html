@@ -485,39 +485,11 @@
     <!-- PAYMENT SCREEN -->
     <div id="auth-payment" class="auth-screen">
       <div class="auth-screen-inner">
-        <h2 class="auth-title">Payment Details</h2>
-        <p class="auth-sub">Your payment is secured and encrypted.</p>
-        <div id="payment-summary" class="payment-summary"></div>
-        <div id="error-payment" class="auth-error"></div>
-        <div class="auth-field">
-          <label class="auth-label" for="card-name">Name on Card</label>
-          <input class="auth-input" id="card-name" type="text" placeholder="As it appears on your card" autocomplete="cc-name" />
+        <h2 class="auth-title">Redirecting to Checkout</h2>
+        <p class="auth-sub">You are being securely redirected to complete your purchase.</p>
+        <div id="checkout-redirect-msg" style="text-align:center;padding:24px 0;font-size:15px;color:var(--dk-green);display:none">
+          Redirecting to secure checkout...
         </div>
-        <div class="auth-field">
-          <label class="auth-label" for="card-number">Card Number</label>
-          <input class="auth-input" id="card-number" type="text" inputmode="numeric"
-            placeholder="1234 5678 9012 3456"
-            maxlength="19"
-            oninput="formatCardNumber(this)"
-            autocomplete="cc-number" />
-        </div>
-        <div class="card-input-row">
-          <div class="auth-field">
-            <label class="auth-label" for="card-expiry">Expiry Date</label>
-            <input class="auth-input" id="card-expiry" type="text" inputmode="numeric"
-              placeholder="MM/YY" maxlength="5"
-              oninput="formatExpiry(this)"
-              autocomplete="cc-exp" />
-          </div>
-          <div class="auth-field">
-            <label class="auth-label" for="card-cvc">CVC</label>
-            <input class="auth-input" id="card-cvc" type="text" inputmode="numeric"
-              placeholder="123" maxlength="4"
-              autocomplete="cc-csc" />
-          </div>
-        </div>
-        <button class="auth-btn" id="btn-pay">Pay</button>
-        <div class="secure-badge">🔒 Secured by Stripe - your card details are never stored</div>
         <div class="auth-switch mt-12">
           <span class="auth-link" onclick="navigateAuth('pricing')">Change plan</span>
         </div>
