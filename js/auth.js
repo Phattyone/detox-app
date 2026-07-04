@@ -62,14 +62,15 @@ const PLANS = {
     description: 'Start exploring before you commit.',
     color:       'var(--mid-gray)',
     features: [
-      { text: 'Morning routine',               included: true  },
-      { text: 'Night-before checklist',        included: true  },
-      { text: 'Recipe browsing with swap UI',  included: true  },
-      { text: 'Shop browsing',                 included: true  },
-      { text: 'Full 7-day meal plan',          included: false },
-      { text: 'Complete recipe instructions',  included: false },
-      { text: 'Progress tracker & journal',    included: false },
-      { text: 'Meal generator',                included: false },
+      { text: 'Morning routine',                  included: true  },
+      { text: 'Night-before checklist (2 items)', included: true  },
+      { text: 'Recipe swap UI on today page',     included: true  },
+      { text: 'Shop browsing (limited)',           included: true  },
+      { text: 'Full 7-day meal plan',             included: false },
+      { text: 'Complete recipe instructions',     included: false },
+      { text: 'Progress tracker and journal',     included: false },
+      { text: 'Meal generator',                   included: false },
+      { text: 'AI Cleanse Coach',                 included: false },
     ],
     // ── CONNECT: STRIPE ── No price ID needed for free plan
     stripePriceId: null,
@@ -85,14 +86,15 @@ const PLANS = {
     description: 'Full program access. Everything you need for all 7 days.',
     color:       'var(--teal)',
     features: [
-      { text: 'Everything in Free',            included: true  },
-      { text: 'Full 7-day meal plan',          included: true  },
-      { text: 'Complete recipes & instructions',included: true  },
-      { text: 'Progress tracker & journal',    included: true  },
-      { text: 'Water tracker',                 included: true  },
-      { text: 'Meal generator',                included: true  },
-      { text: 'Shopping list email',           included: true  },
-      { text: 'Advanced Cleanse program',      included: false },
+      { text: 'Everything in Free',                     included: true  },
+      { text: 'Full 7-day meal plan',                   included: true  },
+      { text: 'Complete recipes and instructions',      included: true  },
+      { text: 'Progress tracker and journal',           included: true  },
+      { text: 'Photos',                                 included: true  },
+      { text: 'Meal generator (unlimited)',             included: true  },
+      { text: 'Shopping list and daily plan downloads', included: true  },
+      { text: 'AI Cleanse Coach (1 per day)',           included: true  },
+      { text: 'Advanced Cleanse program',               included: false },
     ],
     // ── CONNECT: STRIPE ── Replace with your Stripe Price ID
     stripePriceId: 'price_BASIC_MONTHLY_799',
@@ -110,12 +112,13 @@ const PLANS = {
     badge:       'Best Value',
     badgeClass:  'plan-badge-seasonal',
     features: [
-      { text: 'Everything in Basic',                   included: true  },
-      { text: '3 guided seasonal resets per year',     included: true  },
-      { text: 'Reset history across cleanses',         included: true  },
-      { text: 'Seasonal reminder notifications',       included: true  },
-      { text: 'Early access to new content',           included: true  },
-      { text: 'Advanced Cleanse program',              included: false },
+      { text: 'Everything in Basic',                    included: true  },
+      { text: '3 guided seasonal resets per year',      included: true  },
+      { text: 'Seasonal reset features',                included: true  },
+      { text: 'In-app PDF guide viewer',                included: true  },
+      { text: 'AI Cleanse Coach (3 per day)',            included: true  },
+      { text: 'Advanced Cleanse program',               included: false },
+      { text: 'Spreadsheet and guide PDF downloads',    included: false },
     ],
     // ── CONNECT: STRIPE ── Replace with your Stripe Price ID
     stripePriceId: 'price_SEASONAL_ANNUAL_3499',
@@ -134,11 +137,12 @@ const PLANS = {
     badge:       'Full Access',
     badgeClass:  'plan-badge-premium',
     features: [
-      { text: 'Everything in Seasonal',               included: true  },
-      { text: 'Advanced Cleanse program',             included: true  },
-      { text: 'Digital guide (PDF viewer in app)',    included: true  },
-      { text: 'Interactive spreadsheet download',     included: true  },
-      { text: 'All future content included',          included: true  },
+      { text: 'Everything in Seasonal',                         included: true },
+      { text: 'Advanced Cleanse program (coming soon)',          included: true },
+      { text: 'Spreadsheet and guide PDF downloads',            included: true },
+      { text: 'Cleanse history and trend charts (coming soon)', included: true },
+      { text: 'Custom notifications (coming soon)',             included: true },
+      { text: 'Priority support (coming soon)',                 included: true },
     ],
     // ── CONNECT: STRIPE ── Replace with your Stripe Price IDs
     stripePriceId:          'price_PREMIUM_ANNUAL_5999',
@@ -185,44 +189,34 @@ const PLANS = {
 //   admin            = Admin dashboard access
 //   tester           = All paid features, feedback tools
 
-const ALL_PAID = ['morning','checklist-2','checklist-full','day1-full','days2to7',
-  'recipes-swap-ui','recipes-full','shop-browse','shop-links','tracker','generator',
-  'photos',          // Task 3: progress photo upload (Basic+)
-  'downloads-basic', // Task 7: shopping list + cleansing plan download (Basic+)
+const ALL_PAID = [
+  'morning', 'checklist-2', 'checklist-full', 'day1-full', 'days2to7',
+  'recipes-swap-ui', 'recipes-full', 'shop-browse', 'shop-links',
+  'tracker', 'generator', 'photos', 'downloads-basic', 'seasonal-reset',
 ];
 
-// ── Premium-exclusive feature keys (Fix 7 + Round 2) ───────────────────────
-// -- BUILD: cleanse-history     -- Round 3: persist + surface cross-cleanse data
-// -- BUILD: trend-charts        -- Round 3: chart weekly/monthly progress trends
-// -- BUILD: custom-notifications-- Round 3: full notification schedule editor
-// -- BUILD: progress-pdf        -- Round 3: generate downloadable PDF summary
-// -- BUILD: priority-support    -- Round 3: priority support badge + contact form
-// -- BUILD: founding-badge      -- Round 3: Lifetime founding member badge display
 const ALL_PREMIUM_EXCLUSIVE = [
   'cleanse-history', 'trend-charts', 'custom-notifications',
   'progress-pdf', 'priority-support',
 ];
 
 const ALL_FEATURES = [
-  ...ALL_PAID, 'advanced','seasonal','admin','tester',
+  ...ALL_PAID, 'advanced', 'seasonal', 'admin', 'tester',
   ...ALL_PREMIUM_EXCLUSIVE, 'founding-badge',
-  'ai-coach',        // Task 2: AI Cleanse Coach chat (Seasonal+)
-  'guide-pdf',       // Task 6: in-app PDF guide viewer (Premium+)
-  'downloads-premium',// Task 7: spreadsheet + guide PDF download (Premium+)
+  'ai-coach', 'guide-pdf', 'downloads-premium',
 ];
 
 const ACCESS = {
-  free:     ['morning','checklist-2','recipes-swap-ui','shop-browse'],
-  basic:    [...ALL_PAID],
-  premium:  [...ALL_PAID, 'advanced', 'seasonal', ...ALL_PREMIUM_EXCLUSIVE,
-             'ai-coach', 'guide-pdf', 'downloads-premium'],
-  seasonal: [...ALL_PAID, 'advanced','seasonal',
-             'ai-coach'],
-  lifetime: [...ALL_PAID, 'advanced','seasonal', ...ALL_PREMIUM_EXCLUSIVE, 'founding-badge',
-             'ai-coach', 'guide-pdf', 'downloads-premium'],
+  free:     ['morning', 'checklist-2', 'recipes-swap-ui', 'shop-browse'],
+  basic:    [...ALL_PAID, 'ai-coach'],
+  seasonal: [...ALL_PAID, 'ai-coach', 'guide-pdf', 'seasonal-reset'],
+  premium:  [...ALL_PAID, 'ai-coach', 'guide-pdf', 'downloads-premium',
+             'advanced', 'seasonal', 'seasonal-reset', ...ALL_PREMIUM_EXCLUSIVE],
+  lifetime: [...ALL_PAID, 'ai-coach', 'guide-pdf', 'downloads-premium',
+             'advanced', 'seasonal', 'seasonal-reset', ...ALL_PREMIUM_EXCLUSIVE,
+             'founding-badge'],
   admin:    [...ALL_FEATURES],
-  tester:   [...ALL_PAID, 'advanced','tester',
-             'ai-coach', 'guide-pdf', 'downloads-premium'],
+  tester:   [...ALL_PAID, 'advanced', 'tester', 'ai-coach', 'guide-pdf', 'downloads-premium'],
 };
 
 /* ── AUTH STATE ───────────────────────────────────────────────────────────── */

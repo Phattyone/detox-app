@@ -734,7 +734,8 @@ const JOURNAL_MOODS = ['😩','😕','😐','🙂','😊'];
 
 function renderTracker() {
   renderTrackerDayTabs();
-  renderPastCleanses(); // inject after day tabs for seasonal+ users
+  renderPastCleanses();    // inject after day tabs for advanced users
+  renderAdvancedCleanse(); // coming soon card for seasonal, premium, lifetime
   renderMetrics();
   renderPhotos();       // Task 3: progress photos (Basic+)
   renderWellness();
@@ -826,6 +827,36 @@ function renderPastCleanses() {
   }
 
   dayTabsEl.after(section);
+}
+
+function renderAdvancedCleanse() {
+  const existing = document.getElementById('advanced-cleanse-section');
+  if (existing) existing.remove();
+
+  // Visible to seasonal, premium, and lifetime only (guide-pdf distinguishes from basic/free)
+  if (!canAccess('guide-pdf')) return;
+
+  const dayTabsEl = document.getElementById('tracker-day-tabs');
+  if (!dayTabsEl) return;
+
+  const section = document.createElement('div');
+  section.id = 'advanced-cleanse-section';
+  section.style.cssText = 'margin-top:20px;margin-bottom:4px;';
+  section.innerHTML = `
+    <div class="section-title">Advanced Cleanse</div>
+    <div class="callout" style="text-align:center;padding:20px 16px;">
+      <div style="font-size:32px;margin-bottom:10px;">&#x1F550;</div>
+      <div class="callout-label" style="font-size:16px;margin-bottom:6px;">Coming Soon</div>
+      <div class="callout-text">A deeper, more intensive cleanse program. Stay tuned.</div>
+    </div>`;
+
+  // Insert after past cleanses if present, otherwise directly after day tabs
+  const pastCleansesSection = document.getElementById('past-cleanses-section');
+  if (pastCleansesSection) {
+    pastCleansesSection.after(section);
+  } else {
+    dayTabsEl.after(section);
+  }
 }
 
 function togglePastCleanses() {
@@ -1773,6 +1804,7 @@ function applyContentGating() {
   gateGenerator();
   gateShopLinks();
   gateTracker();
+  gateCompanionWidget();
   checkSessionLimit();
   if (typeof updateTrackerSyncMsg === 'function') updateTrackerSyncMsg();
   if (typeof renderPlanBanner     === 'function') renderPlanBanner();
@@ -1850,6 +1882,16 @@ function gateMealCards() {
       );
       morningCard.after(prompt.firstElementChild);
     }
+  }
+
+  // Lock home page day tabs 2-7 for free users -- Day 1 is the only accessible day
+  if (!hasFull) {
+    document.querySelectorAll('.day-btn').forEach((btn, i) => {
+      if (i >= 1) {
+        btn.classList.add('day-btn-future');
+        btn.onclick = () => showUpgradeModal('Unlock the full 7-day meal plan to access all days.');
+      }
+    });
   }
 }
 
@@ -2039,15 +2081,15 @@ function gateGenerator() {
 function gateTracker() {
   if (canAccess('tracker')) return;
 
-  // ── Day tabs: free users get Day 1 AND Day 2; Days 3-7 locked (Fix 3) ────
+  // ── Day tabs: free users get Day 1 only; Days 2-7 locked ─────────────────
   const dayTabs = document.querySelectorAll('.day-tab');
   dayTabs.forEach((tab, i) => {
-    if (i >= 2) { // Days 3-7 (indices 2-6) — fix was: i > 0 locked Day 2
+    if (i >= 1) { // Days 2-7 (indices 1-6) -- free users get Day 1 only
       tab.classList.add('day-tab-locked');
       tab.title = 'Upgrade to Basic to unlock';
       tab.onclick = (e) => {
         e.stopPropagation();
-        showUpgradeModal('Upgrade to Basic to track all 7 days of your cleanse.');
+        showUpgradeModal('Upgrade to unlock all 7 days of tracking.');
       };
     }
   });
@@ -2116,7 +2158,7 @@ function gateTracker() {
     const p = document.createElement('div');
     p.innerHTML = upgradePrompt(
       'Track your full transformation',
-      'Day 1 is free. Unlock all 7 days, 6 body metrics, wellness tracking, and the full journal.',
+      'Unlock all 7 days, 6 body metrics, wellness tracking, and the full journal.',
       'Unlock tracker — $7.99/mo'
     );
     const firstSection = trackerContent.querySelector('.section-title');
@@ -4145,6 +4187,38 @@ function renderCompanionWidget() {
   const grid = document.querySelector('#page-home .home-desktop-grid');
   if (grid && grid.parentNode) grid.parentNode.insertBefore(w, grid);
   initCompanionThoughts();
+  gateCompanionWidget();
+}
+
+function gateCompanionWidget() {
+  if (canAccess('checklist-full')) return; // paid users -- no gating
+
+  const pointsEl = document.getElementById('companion-points-today');
+  if (pointsEl) pointsEl.style.filter = 'blur(4px)';
+
+  const tapBtn = document.getElementById('companion-tap-btn');
+  if (tapBtn) {
+    tapBtn.disabled = true;
+    tapBtn.style.opacity = '0.6';
+    if (!tapBtn.textContent.includes('\u{1F512}')) {
+      tapBtn.textContent = '\u{1F512} ' + tapBtn.textContent.trim();
+    }
+  }
+
+  const tapHint = document.querySelector('#companion-widget .companion-tap-hint');
+  if (tapHint) {
+    tapHint.style.pointerEvents = 'none';
+    tapHint.style.opacity = '0.6';
+    if (!tapHint.textContent.includes('\u{1F512}')) {
+      tapHint.textContent = '\u{1F512} ' + tapHint.textContent.trim();
+    }
+  }
+
+  const plantSvg = document.querySelector('#companion-svg svg');
+  if (plantSvg) {
+    plantSvg.style.cursor = 'default';
+    plantSvg.onclick = null;
+  }
 }
 
 function tapCompanion() {
