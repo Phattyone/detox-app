@@ -1047,7 +1047,7 @@ function renderTrackerDayTabs() {
     return `<div class="day-tab day-btn ${extraClass}${activeClass}"
                  onclick="${onclick}"
                  ${title ? `title="${title}"` : ''}
-            >Day ${dayNum}${badge}</div>`;
+            ><div class="day-num">${dayNum}</div><div class="day-label">Day</div>${badge}</div>`;
   }).join('');
 
   // "Wrong day? Reset" link — only when a start date is set
