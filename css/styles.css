@@ -855,8 +855,8 @@ input, select, textarea { font: inherit; }
   gap: 4px;
   overflow: visible;
   padding-top: 6px;
-  padding-bottom: 8px;
-  margin-bottom: 16px;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
 }
 .day-tabs::-webkit-scrollbar { height: 4px; display: block; }
 .day-tabs::-webkit-scrollbar-track { background: var(--lt-green); border-radius: 2px; }
