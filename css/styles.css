@@ -2363,13 +2363,6 @@ input, select, textarea { font: inherit; }
   cursor: pointer !important;
   position: relative;
 }
-.day-tab-locked::after {
-  content: '🔒';
-  font-size: 8px;
-  position: absolute;
-  top: 2px;
-  right: 4px;
-}
 
 /* ── SHOP FILTER SCROLLBAR ────────────────────────────────────────────────── */
 .shop-filter {
@@ -5246,3 +5239,19 @@ select:focus-visible {
 }
 .delete-confirm-btn:hover:not(:disabled) { background: #b91c1c; }
 .delete-confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── TRACKER DAY TAB SIZING — match today page day button dimensions ───────── */
+.day-tab.day-btn {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 56px;
+  padding: 0;
+}
+
+@media (min-width: 480px) {
+  .day-tab.day-btn { width: 52px; height: 60px; }
+}
+
+@media (min-width: 900px) {
+  .day-tab.day-btn { width: 58px; height: 68px; }
+}
