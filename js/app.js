@@ -2758,6 +2758,11 @@ const COACH = {
   isLoading: false,
 };
 
+try {
+  const stored = sessionStorage.getItem('coach_messages');
+  if (stored) COACH.messages = JSON.parse(stored);
+} catch(e) {}
+
 function initCoachButton() {
   const btn = document.getElementById('coach-chat-btn');
   if (!btn) return;
@@ -2803,11 +2808,17 @@ function openCoachChat() {
   if (!modal) return;
   modal.style.display = 'flex';
 
-  // Show welcome message on first open
+  // Show welcome message on first open (skip if history exists)
   const msgContainer = document.getElementById('coach-chat-messages');
-  if (msgContainer && msgContainer.children.length === 0) {
+  if (msgContainer && msgContainer.children.length === 0 && COACH.messages.length === 0) {
     appendCoachMessage('assistant', "Hi! I'm your Cleanse Coach. I'm here to help you through the 7-Day Organic Vegan Detox & Cleanse. What questions do you have?");
     COACH.messages.push({ role: 'assistant', content: "Hi! I'm your Cleanse Coach. I'm here to help you through the 7-Day Organic Vegan Detox & Cleanse. What questions do you have?" });
+    try { sessionStorage.setItem('coach_messages', JSON.stringify(COACH.messages)); } catch(e) {}
+  }
+
+  // Re-render existing history when modal DOM was reset but session has messages
+  if (msgContainer && msgContainer.children.length === 0 && COACH.messages.length > 0) {
+    COACH.messages.forEach(msg => appendCoachMessage(msg.role, msg.content));
   }
 
   // Show daily limit countdown if applicable
@@ -2856,6 +2867,7 @@ async function sendCoachMessage() {
     const usage = await getCoachUsage();
     if (usage.count >= dailyLimit) {
       appendCoachMessage('assistant', 'You have reached your daily message limit. It resets at midnight UTC.');
+      await updateCoachLimitDisplay();
       return;
     }
   }
@@ -2864,6 +2876,7 @@ async function sendCoachMessage() {
   input.value = '';
   appendCoachMessage('user', text);
   COACH.messages.push({ role: 'user', content: text });
+  try { sessionStorage.setItem('coach_messages', JSON.stringify(COACH.messages)); } catch(e) {}
 
   // Show loading dots
   COACH.isLoading = true;
@@ -2884,6 +2897,7 @@ async function sendCoachMessage() {
   try {
     const reply = await API.sendCoachMessage(COACH.messages);
     COACH.messages.push({ role: 'assistant', content: reply });
+    try { sessionStorage.setItem('coach_messages', JSON.stringify(COACH.messages)); } catch(e) {}
 
     // Remove loading dots
     const dotsEl = document.getElementById(dotId);
@@ -2894,6 +2908,7 @@ async function sendCoachMessage() {
     // Increment daily usage counter
     const afterUsage = await getCoachUsage();
     await updateCoachUsage(afterUsage.count + 1);
+    await updateCoachLimitDisplay();
   } catch(err) {
     const dotsEl = document.getElementById(dotId);
     if (dotsEl) dotsEl.remove();
@@ -2907,7 +2922,6 @@ async function sendCoachMessage() {
     COACH.isLoading = false;
     if (sendBtn) sendBtn.disabled = false;
     if (input)   input.focus();
-    if (typeof updateCoachLimitDisplay === 'function') updateCoachLimitDisplay();
   }
 }
 
@@ -2954,12 +2968,14 @@ async function getCoachUsage() {
 async function updateCoachUsage(newCount) {
   if (!AUTH.user) return;
   const payload = { date: getTodayUTC(), count: newCount };
-  window.sbClient
-    .from('profiles')
-    .update({ ai_coach_usage: payload })
-    .eq('id', AUTH.userId)
-    .then(() => {})
-    .catch(e => console.warn('updateCoachUsage error:', e));
+  try {
+    await window.sbClient
+      .from('profiles')
+      .update({ ai_coach_usage: payload })
+      .eq('id', AUTH.userId);
+  } catch(e) {
+    console.warn('updateCoachUsage error:', e);
+  }
 }
 
 window.getCoachUsage    = getCoachUsage;

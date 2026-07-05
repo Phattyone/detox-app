@@ -221,7 +221,7 @@ const ACCESS = {
 
 const AI_COACH_DAILY_LIMITS = {
   free:     0,
-  basic:    1,
+  basic:    2,
   seasonal: 3,
   premium:  7,
   lifetime: 7,
@@ -428,7 +428,10 @@ async function signOut() {
   //    alongside the reload below — guards any path that skips the reload).
   if (typeof STATE !== 'undefined') STATE.activeDay = 1;
 
-  // 5. Full page reload — the most reliable cross-browser way to reset all
+  // 5. Clear coach session data
+  sessionStorage.removeItem('coach_messages');
+
+  // 6. Full page reload — the most reliable cross-browser way to reset all
   //    in-memory state (STATE, companion, water tracker, streak, day selection).
   location.reload();
 }
