@@ -203,7 +203,9 @@ function onSlotChange(select) {
 
   const recipe = RECIPE_DATA[recipeId];
   const slot   = recipe.slots.find(s => s.id === slotId);
-  const resultEl = document.getElementById(`slot-result-${recipeId}-${slotId}`);
+  const resultEl = select.closest('.slot-group')
+    ? select.closest('.slot-group').querySelector('[id^="slot-result-"]')
+    : document.getElementById(`slot-result-${recipeId}-${slotId}`);
   if (resultEl && slot) {
     resultEl.innerHTML = renderSlotResult(recipe, slot, value);
     resultEl.style.animation = 'none';
