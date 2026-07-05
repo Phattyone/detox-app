@@ -503,7 +503,17 @@ function toggleMealCard(mealId) {
   if (!card) return;
   const wasOpen = card.classList.contains('open');
   card.classList.toggle('open');
-  if (!wasOpen) awardPoints(POINTS_MEAL_LOGGED, 'meal');
+  if (!wasOpen) {
+    const today = toLocalDateStr(new Date());
+    const awardedKey = 'detox_meal_awarded_' + today;
+    let awarded = {};
+    try { awarded = JSON.parse(localStorage.getItem(awardedKey) || '{}'); } catch(e) {}
+    if (!awarded[mealId]) {
+      awardPoints(POINTS_MEAL_LOGGED, 'meal');
+      awarded[mealId] = true;
+      try { localStorage.setItem(awardedKey, JSON.stringify(awarded)); } catch(e) {}
+    }
+  }
 }
 
 function updateDayProgress(day) {
