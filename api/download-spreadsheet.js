@@ -69,7 +69,19 @@ module.exports = async function handler(req, res) {
 
   const email = user.email || '';
   const name  = user.user_metadata?.full_name || user.user_metadata?.name || email;
-  const plan  = user.user_metadata?.plan || 'free';
+
+  const { data: profileRow, error: profileError } = await supabase
+    .from('profiles')
+    .select('plan')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError) {
+    console.error('download-spreadsheet: profile lookup failed:', profileError.message);
+    return res.status(500).json({ error: 'Could not verify plan. Please try again.' });
+  }
+
+  const plan = profileRow?.plan || 'free';
 
   /* ── Plan gate ──────────────────────────────────────────────────────────── */
   if (!ALLOWED_PLANS.has(plan)) {
