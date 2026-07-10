@@ -27,9 +27,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 /* ── File path map (bucket: "downloads") ────────────────────────────────── */
 const FILE_PATHS = {
-  guide:            'guides/Detox-Cleanse-Guide.pdf',
   'guide-preview':  'guides/detox-cleanse-preview.pdf',
-  spreadsheet:      'spreadsheets/detox-cleanse.xlsx',
   'shopping-list':  'shopping-list/shopping-list.pdf',
   'daily-plan':     'daily-plan/daily-plan.pdf',
 };

@@ -24,7 +24,7 @@ const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 const { encryptPDF }                      = require('@pdfsmaller/pdf-encrypt');
 
 /* Plans that include guide download access */
-const ALLOWED_PLANS = new Set(['basic', 'seasonal', 'premium', 'lifetime']);
+const ALLOWED_PLANS = new Set(['premium', 'lifetime']);
 
 module.exports = async function handler(req, res) {
 
@@ -74,7 +74,7 @@ module.exports = async function handler(req, res) {
 
   /* ── Plan gate ──────────────────────────────────────────────────────────── */
   if (!ALLOWED_PLANS.has(plan)) {
-    return res.status(403).json({ error: 'Guide download requires Basic plan or above.' });
+    return res.status(403).json({ error: 'Guide download requires Premium plan or above.' });
   }
 
   /* ── Block 1A — Generate signed URL ────────────────────────────────────── */

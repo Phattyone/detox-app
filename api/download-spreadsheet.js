@@ -23,7 +23,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const JSZip            = require('jszip');
 
-const ALLOWED_PLANS = new Set(['basic', 'seasonal', 'premium', 'lifetime']);
+const ALLOWED_PLANS = new Set(['premium', 'lifetime']);
 
 module.exports = async function handler(req, res) {
 
@@ -73,7 +73,7 @@ module.exports = async function handler(req, res) {
 
   /* ── Plan gate ──────────────────────────────────────────────────────────── */
   if (!ALLOWED_PLANS.has(plan)) {
-    return res.status(403).json({ error: 'Spreadsheet download requires Basic plan or above.' });
+    return res.status(403).json({ error: 'Spreadsheet download requires Premium plan or above.' });
   }
 
   /* ── Build license text ─────────────────────────────────────────────────── */
