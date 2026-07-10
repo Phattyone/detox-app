@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunny, Character Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest:#1B4332; --pine:#0F2E21; --cream:#FAF5EA; --card:#FFFFFF;
+    --ink:#22382E; --ink-soft:#5C7266;
+    --gold:#D9A441; --gold-soft:#F3E3C2; --petal:#E9B94D; --petal-deep:#D99A3A;
+    --terra:#C96F4A; --terra-soft:#F7E4DA;
+    --sage:#DCEBDD; --sage-deep:#74A57F; --leaf:#8DBB8F; --stem:#5E8A5E;
+    --face:#8A5A2B; --face-ink:#3B2413;
+    --water:#7FB6C4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);padding-bottom:60px}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  header{background:var(--forest);color:var(--cream);text-align:center;padding:34px 20px 38px;margin-bottom:30px}
+  .eyebrow{font-size:11px;letter-spacing:.22em;font-weight:800;color:var(--gold);text-transform:uppercase}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,5vw,42px);margin:6px 0 4px}
+  header p{font-family:'Fraunces',serif;font-style:italic;color:#CDE3D4;font-size:15px}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:24px;color:var(--forest);margin:36px 0 6px}
+  .sub{font-size:14px;font-weight:700;color:var(--ink-soft);margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+  .tile{background:var(--card);border-radius:16px;box-shadow:0 2px 10px rgba(27,67,50,.08);padding:16px;text-align:center}
+  .tile .art{background:linear-gradient(180deg,#F2F8F0,#E7F1E4);border-radius:12px;display:flex;align-items:flex-end;justify-content:center;height:190px;overflow:hidden}
+  .tile svg{width:130px;height:176px}
+  .tile h3{font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:var(--forest);margin:10px 0 3px}
+  .tile p{font-size:12px;font-weight:700;color:var(--ink-soft);line-height:1.45}
+  .badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-top:8px}
+  .badge.gold{background:var(--gold-soft);color:#8A6A1E}
+  .badge.terra{background:var(--terra-soft);color:var(--terra)}
+  .badge.sage{background:var(--sage);color:var(--forest)}
+
+  /* Demo */
+  .demo{background:var(--card);border-radius:20px;box-shadow:0 2px 10px rgba(27,67,50,.08);padding:26px;display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+  .demo-stage{flex:none;width:230px;height:270px;background:linear-gradient(180deg,#F2F8F0,#E7F1E4);border-radius:16px;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;position:relative;overflow:visible}
+  .demo-stage svg{width:170px;height:230px}
+  .plant{transform-origin:50% 92%;animation:sway 4.5s ease-in-out infinite}
+  @keyframes sway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+  @media (prefers-reduced-motion: reduce){.plant{animation:none}}
+  .bubble{
+    position:absolute;top:-6px;left:50%;transform:translateX(-50%) scale(0);
+    background:#fff;border:2px solid var(--sage-deep);border-radius:16px;border-bottom-left-radius:4px;
+    padding:10px 14px;font-size:13px;font-weight:800;color:var(--forest);
+    width:max-content;max-width:200px;text-align:center;
+    transition:transform .3s cubic-bezier(.34,1.5,.64,1);box-shadow:0 4px 12px rgba(27,67,50,.12);
+  }
+  .bubble.show{transform:translateX(-50%) scale(1)}
+  .demo-info h3{font-family:'Fraunces',serif;font-weight:600;font-size:22px;color:var(--forest);margin-bottom:6px}
+  .demo-info p{font-size:14px;font-weight:600;color:var(--ink-soft);line-height:1.55;max-width:420px}
+  .tap-hint{display:inline-block;margin-top:12px;background:var(--forest);color:#fff;font-weight:800;font-size:13px;padding:9px 18px;border-radius:999px}
+
+  /* FAB spec */
+  .fab-row{display:flex;gap:26px;align-items:center;flex-wrap:wrap;background:var(--card);border-radius:20px;box-shadow:0 2px 10px rgba(27,67,50,.08);padding:26px}
+  .fab-demo{flex:none;background:var(--forest);border-radius:16px;padding:30px;display:flex;gap:22px;align-items:center}
+  .fab{
+    width:62px;height:62px;border-radius:50%;
+    border:3px solid #FFFFFF;
+    background:var(--gold);
+    box-shadow:0 6px 18px rgba(15,46,33,.35);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .fab svg{width:52px;height:52px}
+  .fab.small{width:46px;height:46px}
+  .fab.small svg{width:38px;height:38px}
+  code{background:#EFF4EC;padding:2px 7px;border-radius:6px;font-size:12.5px;color:var(--forest);font-weight:700}
+  .spec-list{font-size:13.5px;font-weight:600;color:var(--ink-soft);line-height:1.9}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Organic Detox &amp; Cleanse</div>
+  <h1>Sunny, Character Sheet</h1>
+  <p>One character, two jobs. Companion you grow, coach you ask.</p>
+</header>
+
+<div class="wrap">
+
+  <h2>Live Demo: Tap Me Behavior</h2>
+  <div class="sub">Tap Sunny. Random expression plus a speech bubble line. Never opens the chat.</div>
+  <div class="demo">
+    <div class="demo-stage" id="demoStage" title="Tap me!">
+      <div class="bubble" id="bubble">Hi! I'm Sunny!</div>
+      <svg viewBox="0 0 100 135" id="demoSvg"></svg>
+    </div>
+    <div class="demo-info">
+      <h3>Tap = personality. Say Hello = chat.</h3>
+      <p>Each tap pulls a random pairing of expression and line from the pools below. Lines rotate so back-to-back taps never repeat. The chat opens only from the Say Hello button or the floating coach button, never from tapping the plant.</p>
+      <span class="tap-hint">Tap the flower to try it</span>
+    </div>
+  </div>
+
+  <h2>Growth Stages</h2>
+  <div class="sub">Driven by daily water intake and completed steps. Resets each morning at the sprout.</div>
+  <div class="grid" id="stagesGrid"></div>
+
+  <h2>Expression Library</h2>
+  <div class="sub">All applied to the full-bloom head. Faces swap, everything else stays put, so implementation is one SVG with interchangeable face groups.</div>
+  <div class="grid" id="exprGrid"></div>
+
+  <h2>Coach Button Spec</h2>
+  <div class="sub">Whole flower face, full petals, on gold, with a solid white border so it pops off the dark nav and any page background.</div>
+  <div class="fab-row">
+    <div class="fab-demo">
+      <div class="fab" id="fabLarge"></div>
+      <div class="fab small" id="fabSmall"></div>
+    </div>
+    <div class="spec-list">
+      Size: <code>54px</code> standard, <code>46px</code> compact<br>
+      Border: <code>3px solid #FFFFFF</code><br>
+      Background: <code>#D9A441</code> gold, face fills the circle edge to edge<br>
+      Shadow: <code>0 6px 18px rgba(15,46,33,.35)</code><br>
+      Hover: scale <code>1.07</code>, respects reduced motion<br>
+      Chat header avatar uses the same face at <code>34px</code> with a <code>2px</code> white border
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var C = {
+    petal:'#E9B94D', petalDeep:'#D99A3A', face:'#8A5A2B', ink:'#3B2413',
+    stem:'#5E8A5E', leafA:'#74A57F', leafB:'#8DBB8F', pot:'#C96F4A', potRim:'#B4593A',
+    blush:'#D98A66', gold:'#D9A441', water:'#7FB6C4'
+  };
+
+  function petals(cx, cy, count, rx, ry, dist){
+    var s = '';
+    for(var i=0;i<count;i++){
+      var a = (360/count)*i;
+      s += '<ellipse cx="'+cx+'" cy="'+(cy-dist)+'" rx="'+rx+'" ry="'+ry+'" fill="'+(i%2? C.petalDeep : C.petal)+'" transform="rotate('+a+' '+cx+' '+cy+')"/>';
+    }
+    return s;
+  }
+  function pot(){
+    return '<path d="M35 114 H65 L61 132 H39 Z" fill="'+C.pot+'"/><rect x="32" y="111" width="36" height="7" rx="3.5" fill="'+C.potRim+'"/>';
+  }
+  function stemLeaves(topY, w){
+    return '<path d="M50 118 V'+topY+'" stroke="'+C.stem+'" stroke-width="'+w+'" stroke-linecap="round" fill="none"/>' +
+      '<path d="M50 104 C35 100 29 89 31 81 C44 83 51 91 50 104Z" fill="'+C.leafA+'"/>' +
+      '<path d="M50 90 C65 86 71 75 69 67 C57 69 49 78 50 90Z" fill="'+C.leafB+'"/>';
+  }
+
+  // Face expressions drawn inside head centered at (50,42) r15
+  var faces = {
+    happy: function(){ return eyesDot()+smile(); },
+    bigsmile: function(){ return eyesDot()+'<path d="M43 45 Q50 53 57 45 Q50 49 43 45Z" fill="'+C.ink+'"/>'+blush(); },
+    wink: function(){ return '<circle cx="45" cy="39.5" r="2.1" fill="'+C.ink+'"/><path d="M52.5 39.5 Q55 37.5 57.5 39.5" stroke="'+C.ink+'" stroke-width="2" fill="none" stroke-linecap="round"/>'+smile(); },
+    star: function(){ return starEye(45,39.5)+starEye(55,39.5)+'<path d="M44 46 Q50 51.5 56 46" stroke="'+C.ink+'" stroke-width="2" fill="none" stroke-linecap="round"/>'; },
+    sleepy: function(){ return '<path d="M42 40 Q45 42 48 40 M52 40 Q55 42 58 40" stroke="'+C.ink+'" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M46 47 Q50 49.5 54 47" stroke="'+C.ink+'" stroke-width="2" fill="none" stroke-linecap="round"/><text x="66" y="30" font-size="9" font-weight="800" fill="'+C.stem+'" font-family="Nunito,sans-serif">z z</text>'; },
+    thirsty: function(){ return '<circle cx="45" cy="40.5" r="2.1" fill="'+C.ink+'"/><circle cx="55" cy="40.5" r="2.1" fill="'+C.ink+'"/><path d="M45 48.5 Q50 45.5 55 48.5" stroke="'+C.ink+'" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M63 32 c2.5 3.5 2.5 5.5 0 7 c-2.5 -1.5 -2.5 -3.5 0 -7z" fill="'+C.water+'"/>'; },
+    thinking: function(){ return '<circle cx="45" cy="39.5" r="2.1" fill="'+C.ink+'"/><circle cx="55" cy="39.5" r="2.1" fill="'+C.ink+'"/><path d="M45 47 h8" stroke="'+C.ink+'" stroke-width="2" stroke-linecap="round"/><circle cx="67" cy="28" r="1.6" fill="'+C.stem+'"/><circle cx="71" cy="23" r="2.2" fill="'+C.stem+'"/>'; },
+    surprised: function(){ return '<circle cx="45" cy="39.5" r="2.4" fill="'+C.ink+'"/><circle cx="55" cy="39.5" r="2.4" fill="'+C.ink+'"/><ellipse cx="50" cy="47.5" rx="3" ry="3.6" fill="'+C.ink+'"/>'; },
+    celebrate: function(){ return eyesArcUp()+'<path d="M43 45 Q50 53 57 45 Q50 49 43 45Z" fill="'+C.ink+'"/>'+blush()+sparkle(30,20)+sparkle(72,16)+sparkle(76,52); }
+  };
+  function eyesDot(){ return '<circle cx="45" cy="39.5" r="2.1" fill="'+C.ink+'"/><circle cx="55" cy="39.5" r="2.1" fill="'+C.ink+'"/>'; }
+  function eyesArcUp(){ return '<path d="M42.5 40 Q45 37 47.5 40 M52.5 40 Q55 37 57.5 40" stroke="'+C.ink+'" stroke-width="2" fill="none" stroke-linecap="round"/>'; }
+  function smile(){ return '<path d="M44 45.5 Q50 50.5 56 45.5" stroke="'+C.ink+'" stroke-width="2" fill="none" stroke-linecap="round"/>'; }
+  function blush(){ return '<circle cx="40" cy="44" r="2.6" fill="'+C.blush+'" opacity=".55"/><circle cx="60" cy="44" r="2.6" fill="'+C.blush+'" opacity=".55"/>'; }
+  function starEye(x,y){ return '<path d="M'+x+' '+(y-3)+' l.9 1.9 2.1.3 -1.5 1.5 .35 2.1 -1.85 -1 -1.85 1 .35 -2.1 -1.5 -1.5 2.1 -.3z" fill="'+C.ink+'"/>'; }
+  function sparkle(x,y){ return '<path d="M'+x+' '+(y-4)+' l1 2.6 2.6 1 -2.6 1 -1 2.6 -1 -2.6 -2.6 -1 2.6 -1z" fill="'+C.gold+'"/>'; }
+
+  function fullBloom(faceKey, droop){
+    var tilt = droop ? '<g transform="rotate(6 50 58)">' : '<g>';
+    return tilt + stemLeaves(58,5) + petals(50,42,12,5,10.5,18) +
+      '<circle cx="50" cy="42" r="15" fill="'+C.face+'"/>' + faces[faceKey]() + '</g>';
+  }
+  function stageSVG(n){
+    if(n===1) return '<g class="plant"><path d="M50 118 V96" stroke="'+C.stem+'" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M50 102 C40 98 36 90 38 84 C46 86 51 92 50 102Z" fill="'+C.leafA+'"/><path d="M50 96 C60 92 64 84 62 78 C54 80 49 86 50 96Z" fill="'+C.leafB+'"/></g>'+pot();
+    if(n===2) return '<g class="plant"><path d="M50 118 V74" stroke="'+C.stem+'" stroke-width="4.5" stroke-linecap="round" fill="none"/><path d="M50 100 C38 96 33 87 35 80 C45 82 51 89 50 100Z" fill="'+C.leafA+'"/><path d="M50 92 C62 88 67 79 65 72 C55 74 49 81 50 92Z" fill="'+C.leafB+'"/><ellipse cx="50" cy="66" rx="11" ry="13" fill="'+C.leafB+'"/><path d="M50 55 C46 60 46 68 50 74 C54 68 54 60 50 55Z" fill="'+C.petal+'"/></g>'+pot();
+    if(n===3) return '<g class="plant"><path d="M50 118 V62" stroke="'+C.stem+'" stroke-width="4.5" stroke-linecap="round" fill="none"/><path d="M50 102 C37 98 32 88 34 81 C45 83 51 90 50 102Z" fill="'+C.leafA+'"/><path d="M50 90 C63 86 68 76 66 69 C56 71 49 79 50 90Z" fill="'+C.leafB+'"/>'+petals(50,48,10,4.2,8,14)+'<circle cx="50" cy="48" r="12" fill="'+C.face+'"/><circle cx="46" cy="46" r="1.8" fill="'+C.ink+'"/><circle cx="54" cy="46" r="1.8" fill="'+C.ink+'"/><path d="M45.5 51 Q50 54.5 54.5 51" stroke="'+C.ink+'" stroke-width="1.8" fill="none" stroke-linecap="round"/></g>'+pot();
+    return '<g class="plant">'+fullBloom('bigsmile')+'</g>'+pot();
+  }
+
+  // Growth stage tiles
+  var stages = [
+    {n:1, name:'Sprout', note:'0 to 3 glasses. The day starts here.', badge:['sage','Morning reset']},
+    {n:2, name:'Bud', note:'4 to 7 glasses. Getting there.', badge:['sage','Midday']},
+    {n:3, name:'Bloom', note:'8 to 11 glasses. Almost done.', badge:['gold','Nearly there']},
+    {n:4, name:'Full Bloom', note:'12 glasses or full day complete. The payoff state.', badge:['gold','Goal hit']}
+  ];
+  var sg = document.getElementById('stagesGrid');
+  stages.forEach(function(s){
+    var d = document.createElement('div'); d.className='tile';
+    d.innerHTML = '<div class="art"><svg viewBox="0 0 100 135">'+stageSVG(s.n)+'</svg></div><h3>Stage '+s.n+': '+s.name+'</h3><p>'+s.note+'</p><span class="badge '+s.badge[0]+'">'+s.badge[1]+'</span>';
+    sg.appendChild(d);
+  });
+
+  // Expression tiles
+  var exprs = [
+    {k:'happy', name:'Happy', note:'Default resting face across the app.', b:['sage','Default']},
+    {k:'bigsmile', name:'Delighted', note:'Step completed, streak continued.', b:['gold','Reward']},
+    {k:'wink', name:'Wink', note:'Tap-me responses, playful tips.', b:['sage','Tap me']},
+    {k:'star', name:'Star Eyes', note:'Challenge complete, big point gains.', b:['gold','Reward']},
+    {k:'celebrate', name:'Celebrating', note:'Day complete, 7-day finish, milestones.', b:['gold','Milestone']},
+    {k:'sleepy', name:'Sleepy', note:'Evening routine card, wind-down prompts.', b:['sage','Evening']},
+    {k:'thirsty', name:'Thirsty', note:'Water below pace for the time of day.', b:['terra','Nudge']},
+    {k:'thinking', name:'Thinking', note:'Coach is composing an answer in chat.', b:['sage','Coach']},
+    {k:'surprised', name:'Surprised', note:'Tap-me variety, fun facts.', b:['sage','Tap me']}
+  ];
+  var eg = document.getElementById('exprGrid');
+  exprs.forEach(function(e){
+    var d = document.createElement('div'); d.className='tile';
+    d.innerHTML = '<div class="art"><svg viewBox="0 0 100 135"><g class="plant">'+fullBloom(e.k, e.k==='thirsty')+'</g>'+pot()+'</svg></div><h3>'+e.name+'</h3><p>'+e.note+'</p><span class="badge '+e.b[0]+'">'+e.b[1]+'</span>';
+    eg.appendChild(d);
+  });
+
+  // FAB face
+  function fabFace(){
+    return '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="26" fill="'+C.face+'"/>' +
+      (function(){ var s=''; for(var i=0;i<12;i++){ var a=(360/12)*i; s+='<ellipse cx="50" cy="24" rx="7.5" ry="12" fill="'+(i%2?C.petalDeep:C.petal)+'" transform="rotate('+a+' 50 50)"/>';} return s;})() +
+      '<circle cx="50" cy="50" r="26" fill="'+C.face+'"/>' +
+      '<circle cx="42" cy="46" r="3.6" fill="'+C.ink+'"/><circle cx="58" cy="46" r="3.6" fill="'+C.ink+'"/>' +
+      '<path d="M40 56 Q50 65 60 56" stroke="'+C.ink+'" stroke-width="3.6" fill="none" stroke-linecap="round"/>' +
+      '<circle cx="34" cy="53" r="4" fill="'+C.blush+'" opacity=".5"/><circle cx="66" cy="53" r="4" fill="'+C.blush+'" opacity=".5"/></svg>';
+  }
+  document.getElementById('fabLarge').innerHTML = fabFace();
+  document.getElementById('fabSmall').innerHTML = fabFace();
+
+  // Interactive demo
+  var demoSvg = document.getElementById('demoSvg');
+  var bubble = document.getElementById('bubble');
+  var tapPool = [
+    {f:'wink', t:'Sip happens. Keep going!'},
+    {f:'bigsmile', t:'Day 3 and thriving!'},
+    {f:'surprised', t:'Did you know celery is 95% water?'},
+    {f:'star', t:'You are on a 3-day streak!'},
+    {f:'happy', t:'Believe in the process.'},
+    {f:'celebrate', t:'Look at you go!'},
+    {f:'thirsty', t:'A little parched over here...'},
+    {f:'sleepy', t:'Big day. Rest up tonight.'}
+  ];
+  var lastIdx = -1;
+  function setDemo(faceKey){
+    demoSvg.innerHTML = '<g class="plant">'+fullBloom(faceKey, faceKey==='thirsty')+'</g>'+pot();
+  }
+  setDemo('happy');
+  var bubbleTimer;
+  document.getElementById('demoStage').addEventListener('click', function(){
+    var idx;
+    do { idx = Math.floor(Math.random()*tapPool.length); } while(idx === lastIdx);
+    lastIdx = idx;
+    setDemo(tapPool[idx].f);
+    bubble.textContent = tapPool[idx].t;
+    bubble.classList.remove('show');
+    void bubble.offsetWidth;
+    bubble.classList.add('show');
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(function(){ bubble.classList.remove('show'); }, 2600);
+  });
+</script>
+</body>
+</html>

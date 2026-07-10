@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organic Detox &amp; Cleanse, Today Mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest:#1B4332;
+    --pine:#0F2E21;
+    --cream:#FAF5EA;
+    --card:#FFFFFF;
+    --ink:#22382E;
+    --ink-soft:#5C7266;
+    --gold:#D9A441;
+    --gold-soft:#F3E3C2;
+    --terra:#C96F4A;
+    --terra-soft:#F7E4DA;
+    --sage:#DCEBDD;
+    --sage-deep:#74A57F;
+    --water:#7FB6C4;
+    --water-soft:#DCEEF2;
+    --radius:16px;
+    --shadow:0 2px 10px rgba(27,67,50,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Nunito',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    padding-bottom:110px;
+  }
+  .wrap{max-width:520px;margin:0 auto}
+
+  /* ============ HEADER ============ */
+  header{
+    background:
+      radial-gradient(circle at 15% 20%, rgba(217,164,65,.10), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(116,165,127,.14), transparent 50%),
+      var(--forest);
+    color:var(--cream);
+    padding:26px 20px 30px;
+    text-align:center;
+    border-bottom-left-radius:26px;
+    border-bottom-right-radius:26px;
+  }
+  .eyebrow{
+    font-size:11px;letter-spacing:.22em;font-weight:800;
+    color:var(--gold);text-transform:uppercase;
+  }
+  h1{
+    font-family:'Fraunces',serif;font-weight:600;
+    font-size:clamp(30px,7vw,38px);
+    margin:6px 0 4px;letter-spacing:.01em;
+  }
+  .tagline{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
+    font-size:15px;color:#CDE3D4;margin-bottom:16px;
+  }
+  .pills{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+  .pill{
+    border:1px solid rgba(217,164,65,.55);
+    color:var(--gold-soft);
+    font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    padding:6px 13px;border-radius:999px;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .pill svg{width:13px;height:13px;flex:none}
+
+  /* ============ DAY TIMELINE ============ */
+  .days{
+    display:flex;gap:8px;justify-content:center;
+    padding:18px 16px 4px;
+  }
+  .day{
+    width:46px;height:54px;border-radius:14px;
+    background:#EFEAD9;color:#A8B3A6;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:800;font-size:16px;position:relative;
+  }
+  .day small{font-size:8.5px;letter-spacing:.1em;font-weight:800;margin-top:1px}
+  .day.done{background:var(--sage-deep);color:#fff}
+  .day.done::after{
+    content:"";position:absolute;top:-4px;right:-4px;width:16px;height:16px;
+    background:var(--gold);border-radius:50%;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231B4332' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+    background-size:9px;background-position:center;background-repeat:no-repeat;
+  }
+  .day.today{
+    background:var(--forest);color:#fff;
+    outline:2px solid var(--gold);outline-offset:2px;
+  }
+
+  .progress-row{padding:10px 20px 0;display:flex;align-items:center;gap:10px}
+  .progress-row span{font-size:12px;font-weight:800;color:var(--ink-soft)}
+  .bar{flex:1;height:8px;background:#E9E2CF;border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;width:22%;background:linear-gradient(90deg,var(--sage-deep),var(--forest));border-radius:99px;transition:width .5s ease}
+
+  .plan-banner{
+    margin:14px 16px 0;background:var(--forest);color:var(--cream);
+    font-size:12.5px;font-weight:800;letter-spacing:.04em;
+    padding:9px 14px;border-radius:12px;text-align:center;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .plan-banner svg{width:14px;height:14px}
+
+  /* ============ CARDS ============ */
+  section{margin:14px 16px 0}
+  .card{
+    background:var(--card);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px;
+  }
+  .card-label{
+    font-size:10.5px;letter-spacing:.18em;font-weight:800;text-transform:uppercase;
+    color:var(--ink-soft);margin-bottom:10px;display:flex;align-items:center;gap:7px;
+  }
+  .card-label svg{width:14px;height:14px;color:var(--sage-deep)}
+
+  /* ============ COMPANION ============ */
+  .companion{display:flex;gap:16px;align-items:center}
+  .stage{
+    flex:none;width:120px;height:150px;
+    background:linear-gradient(180deg,#F2F8F0,#E7F1E4);
+    border-radius:14px;display:flex;align-items:flex-end;justify-content:center;
+    overflow:hidden;position:relative;cursor:pointer;
+  }
+  .stage svg{width:100px;height:135px;display:block}
+  .plant{transform-origin:50% 92%;animation:sway 4.5s ease-in-out infinite}
+  @keyframes sway{
+    0%,100%{transform:rotate(-2.2deg)}
+    50%{transform:rotate(2.2deg)}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .plant{animation:none}
+    *{transition:none!important}
+  }
+  .growth{display:none}
+  .stage[data-stage="1"] .g1{display:block}
+  .stage[data-stage="2"] .g2{display:block}
+  .stage[data-stage="3"] .g3{display:block}
+  .stage[data-stage="4"] .g4{display:block}
+  .tapme{
+    position:absolute;bottom:5px;left:0;right:0;text-align:center;
+    font-size:10px;font-weight:800;color:var(--sage-deep);letter-spacing:.08em;
+  }
+  .comp-info h3{font-family:'Fraunces',serif;font-weight:600;font-size:19px}
+  .comp-info .sub{font-size:13px;font-weight:700;color:var(--sage-deep);margin:2px 0 10px}
+  .stats{display:flex;gap:16px;margin-bottom:10px}
+  .stat b{font-family:'Fraunces',serif;font-size:20px;font-weight:700;display:block;color:var(--forest)}
+  .stat span{font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--ink-soft);text-transform:uppercase}
+  .thought{
+    font-family:'Fraunces',serif;font-style:italic;font-size:13.5px;color:var(--ink-soft);
+    border-left:3px solid var(--gold);padding-left:10px;
+  }
+  .say-hello{
+    margin-top:12px;background:var(--forest);color:#fff;border:none;cursor:pointer;
+    font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;
+    padding:9px 18px;border-radius:999px;display:inline-flex;align-items:center;gap:7px;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .say-hello:hover{background:var(--pine);transform:translateY(-1px)}
+  .say-hello svg{width:15px;height:15px}
+
+  /* ============ CHALLENGE ============ */
+  .challenge{
+    background:linear-gradient(135deg,#FDF3EC,#FBE9DD);
+    border:1px solid #F0D5C6;
+  }
+  .challenge .card-label{color:var(--terra)}
+  .challenge .card-label svg{color:var(--terra)}
+  .challenge p{font-weight:700;font-size:14.5px;margin-bottom:12px}
+  .challenge-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .pts-chip{
+    background:var(--terra);color:#fff;font-size:12px;font-weight:800;
+    padding:5px 12px;border-radius:999px;
+  }
+  .btn-complete{
+    background:#fff;border:1.5px solid var(--terra);color:var(--terra);cursor:pointer;
+    font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;
+    padding:8px 16px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;
+    transition:all .2s ease;
+  }
+  .btn-complete svg{width:14px;height:14px}
+  .btn-complete.done{background:var(--terra);color:#fff}
+
+  /* ============ WATER ============ */
+  .water-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .water-count{font-family:'Fraunces',serif;font-weight:700;font-size:18px;color:var(--forest)}
+  .water-count small{font-size:12px;color:var(--ink-soft);font-family:'Nunito',sans-serif;font-weight:700}
+  .glasses{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;justify-items:center}
+  .glass{
+    width:34px;height:44px;cursor:pointer;background:none;border:none;padding:0;
+    transition:transform .15s ease;
+  }
+  .glass:hover{transform:translateY(-3px)}
+  .glass svg{width:100%;height:100%;overflow:visible}
+  .glass .fill{transition:transform .45s cubic-bezier(.34,1.4,.64,1);transform:scaleY(0);transform-origin:50% 100%}
+  .glass.filled .fill{transform:scaleY(1)}
+  .water-note{margin-top:12px;font-size:12.5px;font-weight:700;color:var(--ink-soft);text-align:center}
+  .water-note b{color:var(--sage-deep)}
+
+  /* ============ CHECKLIST ============ */
+  .check-item{
+    display:flex;gap:12px;align-items:flex-start;
+    padding:12px;border-radius:12px;background:#F5F8F3;margin-bottom:8px;
+    cursor:pointer;transition:opacity .25s ease, background .25s ease;
+  }
+  .check-item:last-child{margin-bottom:0}
+  .checkbox{
+    flex:none;width:22px;height:22px;border-radius:7px;margin-top:1px;
+    border:2px solid var(--sage-deep);background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .2s ease;
+  }
+  .checkbox svg{width:13px;height:13px;color:#fff;opacity:0;transition:opacity .2s ease}
+  .check-item.done{opacity:.55;background:#EFF4EC}
+  .check-item.done .checkbox{background:var(--sage-deep)}
+  .check-item.done .checkbox svg{opacity:1}
+  .check-item h4{font-size:13.5px;font-weight:800}
+  .check-item p{font-size:12.5px;color:var(--ink-soft);font-weight:600;line-height:1.45}
+
+  /* ============ MEALS ============ */
+  .meal{
+    display:flex;align-items:center;gap:13px;background:var(--card);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:14px 16px;margin-bottom:10px;cursor:pointer;
+    transition:transform .15s ease;
+  }
+  .meal:hover{transform:translateX(3px)}
+  .meal-icon{
+    flex:none;width:42px;height:42px;border-radius:12px;
+    background:var(--sage);display:flex;align-items:center;justify-content:center;
+  }
+  .meal-icon svg{width:23px;height:23px}
+  .meal-body{flex:1}
+  .meal-body h4{font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:var(--forest)}
+  .meal-body p{font-size:12px;font-weight:700;color:var(--ink-soft)}
+  .time-chip{
+    flex:none;font-size:11px;font-weight:800;color:var(--forest);
+    background:var(--gold-soft);padding:4px 10px;border-radius:999px;
+  }
+  .chev{flex:none;width:16px;height:16px;color:#B9C4B6}
+
+  /* ============ NAV ============ */
+  nav{
+    position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+    width:min(480px,calc(100% - 28px));
+    background:var(--pine);border-radius:22px;
+    display:flex;justify-content:space-around;
+    padding:10px 6px;box-shadow:0 8px 24px rgba(15,46,33,.35);
+    z-index:50;
+  }
+  .nav-item{
+    background:none;border:none;cursor:pointer;color:#8FAF9C;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-family:'Nunito',sans-serif;font-size:9.5px;font-weight:800;letter-spacing:.06em;
+    padding:4px 10px;border-radius:14px;transition:color .2s ease;
+  }
+  .nav-item svg{width:23px;height:23px}
+  .nav-item.active{color:var(--gold)}
+  .nav-item.active .nav-dot{opacity:1}
+  .nav-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);opacity:0;margin-top:1px}
+
+  /* ============ COACH ============ */
+  .coach-fab{
+    position:fixed;bottom:96px;right:calc(50% - min(240px,50% - 14px));
+    width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;
+    background:var(--gold);box-shadow:0 6px 18px rgba(217,164,65,.45);
+    display:flex;align-items:center;justify-content:center;z-index:60;
+    transition:transform .2s ease;
+  }
+  .coach-fab:hover{transform:scale(1.07)}
+  .coach-fab svg{width:32px;height:32px}
+  .coach-panel{
+    position:fixed;bottom:96px;right:calc(50% - min(240px,50% - 14px));
+    width:min(330px,calc(100vw - 28px));
+    background:#fff;border-radius:20px;box-shadow:0 12px 40px rgba(15,46,33,.25);
+    overflow:hidden;z-index:70;
+    transform:translateY(12px) scale(.97);opacity:0;pointer-events:none;
+    transition:all .25s ease;
+  }
+  .coach-panel.open{transform:none;opacity:1;pointer-events:auto}
+  .coach-head{
+    background:var(--forest);color:var(--cream);
+    display:flex;align-items:center;gap:10px;padding:13px 16px;
+  }
+  .coach-avatar{
+    width:34px;height:34px;border-radius:50%;background:var(--gold-soft);
+    display:flex;align-items:center;justify-content:center;flex:none;
+  }
+  .coach-avatar svg{width:26px;height:26px}
+  .coach-head h4{font-family:'Fraunces',serif;font-weight:600;font-size:16px;flex:1}
+  .coach-close{background:none;border:none;color:var(--cream);cursor:pointer;font-size:18px;line-height:1}
+  .coach-body{padding:16px}
+  .coach-msg{
+    background:#F1F7F0;border-radius:14px;border-top-left-radius:4px;
+    padding:12px 14px;font-size:13.5px;font-weight:600;line-height:1.5;color:var(--ink);
+  }
+  .coach-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+  .chip{
+    background:#fff;border:1.5px solid var(--sage-deep);color:var(--forest);cursor:pointer;
+    font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;
+    padding:6px 12px;border-radius:999px;transition:background .15s ease;
+  }
+  .chip:hover{background:var(--sage)}
+  .coach-input{display:flex;gap:8px;margin-top:13px}
+  .coach-input input{
+    flex:1;border:1.5px solid #DCE5DA;border-radius:999px;
+    font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;
+    padding:9px 15px;outline:none;color:var(--ink);
+  }
+  .coach-input input:focus{border-color:var(--sage-deep)}
+  .coach-send{
+    width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;
+    background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;
+  }
+  .coach-send svg{width:16px;height:16px}
+  .coach-foot{
+    text-align:center;font-size:11px;font-weight:700;color:#9AA89D;
+    padding:0 16px 13px;
+  }
+  .coach-foot b{color:var(--sage-deep)}
+
+  .toast{
+    position:fixed;top:18px;left:50%;transform:translate(-50%,-80px);
+    background:var(--forest);color:var(--gold-soft);
+    font-size:13px;font-weight:800;padding:10px 20px;border-radius:999px;
+    box-shadow:0 8px 24px rgba(15,46,33,.3);z-index:100;
+    transition:transform .4s cubic-bezier(.34,1.4,.64,1);
+  }
+  .toast.show{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <div class="eyebrow">7-Day Program</div>
+    <h1>Organic Detox &amp; Cleanse</h1>
+    <p class="tagline">Reset your body. Clear your mind. See the difference.</p>
+    <div class="pills">
+      <span class="pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3c-3 4-6 6.5-6 10a6 6 0 0012 0c0-3.5-3-6-6-10z"/></svg>
+        Feel Lighter
+      </span>
+      <span class="pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2 2M16.7 16.7l2 2M18.7 5.3l-2 2M7.3 16.7l-2 2"/></svg>
+        Clearer Skin
+      </span>
+      <span class="pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg>
+        Sharper Focus
+      </span>
+      <span class="pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 13.5A8.5 8.5 0 1110 3a7 7 0 0010 10.5z"/></svg>
+        Deeper Sleep
+      </span>
+      <span class="pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21c4.5-2.6 7-6 7-10V5.5L12 3 5 5.5V11c0 4 2.5 7.4 7 10z"/></svg>
+        Less Bloating
+      </span>
+    </div>
+  </header>
+
+  <!-- DAY TIMELINE -->
+  <div class="days">
+    <div class="day done">1<small>DAY</small></div>
+    <div class="day today">2<small>TODAY</small></div>
+    <div class="day">3<small>DAY</small></div>
+    <div class="day">4<small>DAY</small></div>
+    <div class="day">5<small>DAY</small></div>
+    <div class="day">6<small>DAY</small></div>
+    <div class="day">7<small>DAY</small></div>
+  </div>
+
+  <div class="progress-row">
+    <span>Your Progress</span>
+    <div class="bar"><i id="progressFill"></i></div>
+    <span>5 days left</span>
+  </div>
+
+  <div class="plan-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+    Basic Plan &middot; 7-Day Full Cleanse
+  </div>
+
+  <!-- COMPANION -->
+  <section>
+    <div class="card">
+      <div class="card-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9M12 9c0-4 3-6.5 7-6.5C19 7 16 9 12 9zM12 13c0-3.2-2.5-5-5.5-5C6.5 11.5 9 13 12 13z"/></svg>
+        Your Cleanse Companion
+      </div>
+      <div class="companion">
+        <div class="stage" id="stage" data-stage="2" title="Tap to say hi">
+          <svg viewBox="0 0 100 135" aria-label="Sunny the sunflower companion">
+            <g class="plant">
+              <!-- STAGE 1: sprout -->
+              <g class="growth g1">
+                <path d="M50 118 V96" stroke="#5E8A5E" stroke-width="4" stroke-linecap="round" fill="none"/>
+                <path d="M50 102 C40 98 36 90 38 84 C46 86 51 92 50 102Z" fill="#74A57F"/>
+                <path d="M50 96 C60 92 64 84 62 78 C54 80 49 86 50 96Z" fill="#8DBB8F"/>
+              </g>
+              <!-- STAGE 2: bud -->
+              <g class="growth g2">
+                <path d="M50 118 V74" stroke="#5E8A5E" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+                <path d="M50 100 C38 96 33 87 35 80 C45 82 51 89 50 100Z" fill="#74A57F"/>
+                <path d="M50 92 C62 88 67 79 65 72 C55 74 49 81 50 92Z" fill="#8DBB8F"/>
+                <ellipse cx="50" cy="66" rx="11" ry="13" fill="#8DBB8F"/>
+                <path d="M50 55 C46 60 46 68 50 74 C54 68 54 60 50 55Z" fill="#E9B94D"/>
+              </g>
+              <!-- STAGE 3: bloom -->
+              <g class="growth g3">
+                <path d="M50 118 V62" stroke="#5E8A5E" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+                <path d="M50 102 C37 98 32 88 34 81 C45 83 51 90 50 102Z" fill="#74A57F"/>
+                <path d="M50 90 C63 86 68 76 66 69 C56 71 49 79 50 90Z" fill="#8DBB8F"/>
+                <g id="petalsSmall"></g>
+                <circle cx="50" cy="48" r="12" fill="#8A5A2B"/>
+                <circle cx="46" cy="46" r="1.8" fill="#3B2413"/>
+                <circle cx="54" cy="46" r="1.8" fill="#3B2413"/>
+                <path d="M45.5 51 Q50 54.5 54.5 51" stroke="#3B2413" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+              </g>
+              <!-- STAGE 4: full bloom -->
+              <g class="growth g4">
+                <path d="M50 118 V58" stroke="#5E8A5E" stroke-width="5" stroke-linecap="round" fill="none"/>
+                <path d="M50 104 C35 100 29 89 31 81 C44 83 51 91 50 104Z" fill="#74A57F"/>
+                <path d="M50 90 C65 86 71 75 69 67 C57 69 49 78 50 90Z" fill="#8DBB8F"/>
+                <g id="petalsBig"></g>
+                <circle cx="50" cy="42" r="15" fill="#8A5A2B"/>
+                <circle cx="45" cy="39.5" r="2.1" fill="#3B2413"/>
+                <circle cx="55" cy="39.5" r="2.1" fill="#3B2413"/>
+                <path d="M44 45.5 Q50 50.5 56 45.5" stroke="#3B2413" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <circle cx="41" cy="44" r="2.6" fill="#D98A66" opacity=".55"/>
+                <circle cx="59" cy="44" r="2.6" fill="#D98A66" opacity=".55"/>
+              </g>
+            </g>
+            <!-- pot -->
+            <path d="M35 114 H65 L61 132 H39 Z" fill="#C96F4A"/>
+            <rect x="32" y="111" width="36" height="7" rx="3.5" fill="#B4593A"/>
+          </svg>
+          <div class="tapme">TAP ME</div>
+        </div>
+        <div class="comp-info">
+          <h3 id="compName">Sunny</h3>
+          <div class="sub" id="compStatus">Growing steady. Day 3!</div>
+          <div class="stats">
+            <div class="stat"><b id="ptsToday">50</b><span>Today's Pts</span></div>
+            <div class="stat"><b>3</b><span>Day Streak</span></div>
+            <div class="stat"><b id="ptsAll">764</b><span>All-Time</span></div>
+          </div>
+          <div class="thought">Believe in the process. The results are coming.</div>
+          <button class="say-hello" onclick="toggleCoach(true)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 01-8.5 8.5c-1.5 0-3-.4-4.2-1L3 20l1-5.3A8.5 8.5 0 1121 11.5z"/></svg>
+            Say Hello
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHALLENGE -->
+  <section>
+    <div class="card challenge">
+      <div class="card-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 6.4L21 9l-5 4.4L17.5 21 12 17.3 6.5 21 8 13.4 3 9l6.6-.6L12 2z"/></svg>
+        Today's Challenge
+      </div>
+      <p>Try the ginger variation of your morning juice.</p>
+      <div class="challenge-row">
+        <span class="pts-chip">+30 pts</span>
+        <button class="btn-complete" id="challengeBtn" onclick="completeChallenge(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          <span>Challenge Complete</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- WATER -->
+  <section>
+    <div class="card">
+      <div class="card-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3c-3 4-6 6.5-6 10a6 6 0 0012 0c0-3.5-3-6-6-10z"/></svg>
+        Daily Water Goal
+      </div>
+      <div class="water-head">
+        <span style="font-size:13px;font-weight:700;color:var(--ink-soft)">Each glass is 8 oz. Sunny grows as you sip.</span>
+        <span class="water-count"><span id="ozCount">40</span><small> / 96 oz</small></span>
+      </div>
+      <div class="glasses" id="glasses"></div>
+      <div class="water-note" id="waterNote">7 more glasses and <b>Sunny hits full bloom</b></div>
+    </div>
+  </section>
+
+  <!-- CHECKLIST -->
+  <section>
+    <div class="card">
+      <div class="card-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Tonight's Prep Checklist
+      </div>
+      <div class="check-item done" onclick="toggleCheck(this)">
+        <div class="checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <div><h4>Soak prunes</h4><p>Place 4 dried prunes in a glass, cover with purified water. Leave overnight.</p></div>
+      </div>
+      <div class="check-item done" onclick="toggleCheck(this)">
+        <div class="checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <div><h4>Soak almonds</h4><p>10 raw almonds in a separate glass, covered with purified water overnight.</p></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <div><h4>Set out probiotics</h4><p>Place them on the counter so they are the first thing you reach for tomorrow.</p></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <div><h4>Prep the shaker bottle</h4><p>Ground flax and unsweetened cranberry, measured and ready by the sink.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEALS -->
+  <section>
+    <div class="card-label" style="margin:4px 2px 10px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18M5 11a7 7 0 0114 0M12 4v1M9 21h6"/></svg>
+      Today's Meal Plan
+    </div>
+
+    <div class="meal">
+      <div class="meal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="14" r="4.5" fill="#E9B94D" stroke="none"/><path d="M12 5v2.5M4.9 8.4l1.8 1.8M19.1 8.4l-1.8 1.8M3 14h2.5M18.5 14H21"/></svg>
+      </div>
+      <div class="meal-body"><h4>Morning Routine</h4><p>Upon rising, every day</p></div>
+      <span class="time-chip">5-8 min</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+
+    <div class="meal">
+      <div class="meal-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 4c-4 0-7 2.6-7 6.2C5 15.5 8 20 12 20s7-4.5 7-9.8C19 6.6 16 4 12 4z" fill="#D96A6A"/><circle cx="9.5" cy="10" r=".9" fill="#F7E4DA"/><circle cx="13.5" cy="13" r=".9" fill="#F7E4DA"/><circle cx="11" cy="16" r=".9" fill="#F7E4DA"/><path d="M12 4c.4-1.2 1.4-2 2.8-2" stroke="#5E8A5E" stroke-width="2" stroke-linecap="round"/><path d="M12 4.2c-1.8-1.4-3.8-1-4.6.2 1.4 1 3.2.8 4.6-.2z" fill="#74A57F"/></svg>
+      </div>
+      <div class="meal-body"><h4>Breakfast</h4><p>Choose one of 3 recipes</p></div>
+      <span class="time-chip">5-8 min</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+
+    <div class="meal">
+      <div class="meal-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M8 4h8l-1 4H9L8 4z" fill="#E9B94D"/><path d="M9 8h6v9a3 3 0 01-3 3 3 3 0 01-3-3V8z" fill="#EFA05C"/><path d="M10.5 10.5h3M10.5 13h3" stroke="#FBE9DD" stroke-width="1.4" stroke-linecap="round"/><path d="M14.5 4.5L16 2" stroke="#74A57F" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="meal-body"><h4>Mid-Morning Juice</h4><p>Choose one of 3 recipes</p></div>
+      <span class="time-chip">8 min</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+
+    <div class="meal">
+      <div class="meal-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 11h16a8 8 0 01-16 0z" fill="#74A57F"/><path d="M4 11h16" stroke="#1B4332" stroke-width="1.6" stroke-linecap="round"/><path d="M8 8.5c1.2-1.5 3-1.5 4 0 1-1.5 2.8-1.5 4 0" stroke="#8DBB8F" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      </div>
+      <div class="meal-body"><h4>Lunch</h4><p>Choose one of 3 salad recipes</p></div>
+      <span class="time-chip">10-15 min</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </section>
+
+</div>
+
+<!-- COACH FAB + PANEL -->
+<button class="coach-fab" id="coachFab" onclick="toggleCoach()" aria-label="Open your cleanse coach">
+  <svg viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="24" fill="#8A5A2B"/>
+    <g fill="#E9B94D">
+      <ellipse cx="50" cy="18" rx="7" ry="13"/>
+      <ellipse cx="50" cy="82" rx="7" ry="13"/>
+      <ellipse cx="18" cy="50" rx="13" ry="7"/>
+      <ellipse cx="82" cy="50" rx="13" ry="7"/>
+      <ellipse cx="27" cy="27" rx="10" ry="10"/>
+      <ellipse cx="73" cy="27" rx="10" ry="10"/>
+      <ellipse cx="27" cy="73" rx="10" ry="10"/>
+      <ellipse cx="73" cy="73" rx="10" ry="10"/>
+    </g>
+    <circle cx="43" cy="46" r="3.4" fill="#3B2413"/>
+    <circle cx="57" cy="46" r="3.4" fill="#3B2413"/>
+    <path d="M41 55 Q50 63 59 55" stroke="#3B2413" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+  </svg>
+</button>
+
+<div class="coach-panel" id="coachPanel">
+  <div class="coach-head">
+    <div class="coach-avatar">
+      <svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="22" fill="#8A5A2B"/>
+        <g fill="#E9B94D">
+          <ellipse cx="50" cy="20" rx="6" ry="11"/><ellipse cx="50" cy="80" rx="6" ry="11"/>
+          <ellipse cx="20" cy="50" rx="11" ry="6"/><ellipse cx="80" cy="50" rx="11" ry="6"/>
+          <ellipse cx="29" cy="29" rx="9" ry="9"/><ellipse cx="71" cy="29" rx="9" ry="9"/>
+          <ellipse cx="29" cy="71" rx="9" ry="9"/><ellipse cx="71" cy="71" rx="9" ry="9"/>
+        </g>
+        <circle cx="44" cy="46" r="3" fill="#3B2413"/><circle cx="56" cy="46" r="3" fill="#3B2413"/>
+        <path d="M42 55 Q50 62 58 55" stroke="#3B2413" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h4>Sunny, Your Cleanse Coach</h4>
+    <button class="coach-close" onclick="toggleCoach(false)" aria-label="Close coach">&times;</button>
+  </div>
+  <div class="coach-body">
+    <div class="coach-msg">
+      Morning! Day 2 starts with citrus water and your probiotic. What can I help with?
+    </div>
+    <div class="coach-chips">
+      <button class="chip">What do I eat first?</button>
+      <button class="chip">Can I swap the juice?</button>
+      <button class="chip">I have a headache</button>
+    </div>
+    <div class="coach-input">
+      <input type="text" placeholder="Ask Sunny anything...">
+      <button class="coach-send" aria-label="Send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="coach-foot"><b>2 questions left today</b> &middot; Wellness guidance, not medical advice</div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <button class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.5 1.5M16.9 16.9l1.5 1.5M18.4 5.6l-1.5 1.5M7.1 16.9l-1.5 1.5"/></svg>
+    TODAY<span class="nav-dot"></span>
+  </button>
+  <button class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16a8 8 0 01-16 0z"/><path d="M8 9c1-1.4 2.6-1.4 3.5 0 .9-1.4 2.5-1.4 3.5 0"/></svg>
+    RECIPES<span class="nav-dot"></span>
+  </button>
+  <button class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M5 20V14M12 20V8M19 20v-9"/><circle cx="19" cy="6" r="2" fill="currentColor" stroke="none"/></svg>
+    TRACKER<span class="nav-dot"></span>
+  </button>
+  <button class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2-1.8-5-2-8-1v13c3-1 6-.8 8 1 2-1.8 5-2 8-1V5c-3-1-6-.8-8 1z"/><path d="M12 6v13"/></svg>
+    GUIDE<span class="nav-dot"></span>
+  </button>
+  <button class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1.2 11a1.8 1.8 0 01-1.8 2H6.6a1.8 1.8 0 01-1.8-2L6 8z"/><path d="M9 10V6a3 3 0 016 0v4"/></svg>
+    SHOP<span class="nav-dot"></span>
+  </button>
+</nav>
+
+<div class="toast" id="toast">Nice! +30 pts</div>
+
+<script>
+  // Build petals for bloom stages
+  function makePetals(targetId, cx, cy, count, rx, ry, dist){
+    var g = document.getElementById(targetId);
+    var svgNS = "http://www.w3.org/2000/svg";
+    for(var i=0;i<count;i++){
+      var angle = (360/count)*i;
+      var p = document.createElementNS(svgNS,'ellipse');
+      p.setAttribute('cx', cx);
+      p.setAttribute('cy', cy - dist);
+      p.setAttribute('rx', rx);
+      p.setAttribute('ry', ry);
+      p.setAttribute('fill', i%2===0 ? '#E9B94D' : '#DfA83A'.replace('f','9'));
+      p.setAttribute('transform','rotate('+angle+' '+cx+' '+cy+')');
+      g.appendChild(p);
+    }
+  }
+  makePetals('petalsSmall', 50, 48, 10, 4.2, 8, 14);
+  makePetals('petalsBig', 50, 42, 12, 5, 10.5, 18);
+
+  // Water tracker drives companion growth
+  var GOAL = 12;
+  var filled = 5;
+  var glassesEl = document.getElementById('glasses');
+  var glassSVG = '<svg viewBox="0 0 34 44">' +
+    '<defs><clipPath id="gc"><path d="M5 3 H29 L26 41 H8 Z"/></clipPath></defs>' +
+    '<g clip-path="url(#gc)"><rect class="fill" x="0" y="8" width="34" height="36" fill="#7FB6C4"/>' +
+    '<ellipse class="fill" cx="17" cy="9" rx="14" ry="3" fill="#A8D2DC"/></g>' +
+    '<path d="M5 3 H29 L26 41 H8 Z" fill="none" stroke="#B9C4B6" stroke-width="2.4" stroke-linejoin="round"/>' +
+    '</svg>';
+
+  for(var i=0;i<GOAL;i++){
+    var b = document.createElement('button');
+    b.className = 'glass' + (i<filled ? ' filled' : '');
+    b.innerHTML = glassSVG;
+    b.setAttribute('aria-label','Glass ' + (i+1));
+    b.dataset.idx = i;
+    b.addEventListener('click', function(){
+      var idx = parseInt(this.dataset.idx,10);
+      filled = this.classList.contains('filled') && idx === filled-1 ? idx : idx+1;
+      render();
+    });
+    glassesEl.appendChild(b);
+  }
+
+  function render(){
+    var glasses = glassesEl.children;
+    for(var i=0;i<glasses.length;i++){
+      glasses[i].classList.toggle('filled', i<filled);
+    }
+    document.getElementById('ozCount').textContent = filled*8;
+
+    var stage = 1;
+    if(filled >= 4) stage = 2;
+    if(filled >= 8) stage = 3;
+    if(filled >= 12) stage = 4;
+    document.getElementById('stage').dataset.stage = stage;
+
+    var note = document.getElementById('waterNote');
+    var status = document.getElementById('compStatus');
+    if(filled >= 12){
+      note.innerHTML = '<b>Full bloom!</b> Sunny is glowing. Goal hit.';
+      status.textContent = 'Full bloom! Goal crushed.';
+    } else if(filled >= 8){
+      note.innerHTML = (12-filled) + ' more and <b>Sunny hits full bloom</b>';
+      status.textContent = 'Blooming nicely. Day 3!';
+    } else if(filled >= 4){
+      note.innerHTML = (8-filled) + ' more glasses until <b>Sunny blooms</b>';
+      status.textContent = 'Growing steady. Day 3!';
+    } else {
+      note.innerHTML = 'Keep sipping. <b>Sunny is just a sprout</b>';
+      status.textContent = 'Just sprouting. Water me!';
+    }
+  }
+  render();
+
+  // Challenge
+  function completeChallenge(btn){
+    if(btn.classList.contains('done')) return;
+    btn.classList.add('done');
+    btn.querySelector('span').textContent = 'Completed!';
+    var pts = document.getElementById('ptsToday');
+    var all = document.getElementById('ptsAll');
+    pts.textContent = parseInt(pts.textContent,10) + 30;
+    all.textContent = parseInt(all.textContent,10) + 30;
+    var toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(function(){ toast.classList.remove('show'); }, 2200);
+  }
+
+  // Checklist, checkmark and dim only, no strikethrough
+  function toggleCheck(el){ el.classList.toggle('done'); }
+
+  // Coach
+  function toggleCoach(force){
+    var panel = document.getElementById('coachPanel');
+    var open = typeof force === 'boolean' ? force : !panel.classList.contains('open');
+    panel.classList.toggle('open', open);
+    document.getElementById('coachFab').style.display = open ? 'none' : 'flex';
+  }
+
+  // Companion tap
+  document.getElementById('stage').addEventListener('click', function(){
+    toggleCoach(true);
+  });
+</script>
+</body>
+</html>
