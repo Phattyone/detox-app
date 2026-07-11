@@ -1,5 +1,5 @@
 /* ── GOOGLE FONTS ──────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Nunito:wght@300;400;500;600;700&display=swap');
 
 /* ── BRAND TOKENS ─────────────────────────────────────────────────────────── */
 :root {
@@ -20,9 +20,9 @@
   --text:        #2A2A26;
   --text-muted:  #6A6A66;
 
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body:    'Source Serif 4', Georgia, serif;
-  --font-ui:      'DM Sans', system-ui, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:    'Nunito', system-ui, sans-serif;
+  --font-ui:      'Nunito', system-ui, sans-serif;
 
   --radius-sm:  6px;
   --radius-md:  12px;
@@ -37,6 +37,24 @@
   --nav-h: 64px;
   --max-w: 900px;
   --page-pad: 20px;
+
+  --forest:      #1B4332;
+  --pine:        #2D6A4F;
+  --cream:       #FDFAF4;
+  --ink:         #1C1C1A;
+  --ink-soft:    #4A4A44;
+  --sage:        #8FAF92;
+  --sage-deep:   #5A8C6A;
+  --gold:        #C8882A;
+  --gold-soft:   #F5E6CC;
+  --petal:       #E8C4B8;
+  --terra:       #C4603A;
+  --terra-soft:  #F5DDD6;
+  --water:       #4A8FA8;
+  --water-soft:  #D6EBF2;
+
+  --radius-card: 16px;
+  --shadow-card: 0 2px 16px rgba(28,28,26,0.08);
 }
 
 /* ── RESET ────────────────────────────────────────────────────────────────── */
@@ -187,14 +205,14 @@ input, select, textarea { font: inherit; }
 /* ── CARDS ────────────────────────────────────────────────────────────────── */
 .card {
   background: var(--white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
   border: 1px solid rgba(27,67,50,0.07);
   overflow: hidden;
   margin-bottom: 16px;
   transition: box-shadow 0.2s, transform 0.2s;
 }
-.card:hover { box-shadow: var(--shadow-md); }
+.card:hover { box-shadow: 0 6px 28px rgba(28,28,26,0.13); }
 .card-header {
   padding: 16px 20px;
   display: flex;
@@ -3843,7 +3861,7 @@ body { background: #F7FAF7; }
 
 /* ── Card hover lift ──────────────────────────────────────────────────────── */
 .card:hover {
-  box-shadow: 0 6px 24px rgba(27,67,50,0.13);
+  box-shadow: 0 6px 28px rgba(28,28,26,0.13);
   transform: translateY(-2px);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
