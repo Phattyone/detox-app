@@ -113,9 +113,7 @@ body{background:var(--cream);color:var(--ink)}
 
 /* -- Progress bar -- */
 .progress-bar-wrap{padding:10px 20px 0;display:flex;align-items:center;gap:10px}
-.progress-bar-label{display:contents}
-.progress-bar-label span,
-.progress-bar-label strong{font-size:12px;font-weight:800;color:var(--ink-soft);white-space:nowrap}
+.progress-bar-text{font-size:12px;font-weight:800;color:var(--ink-soft);white-space:nowrap}
 .progress-bar-track{flex:1;height:8px;background:#E9E2CF;border-radius:99px;overflow:hidden}
 .progress-bar-fill{
   display:block;height:100%;
