@@ -1932,7 +1932,7 @@ function gateMealCards() {
         if (!btn.querySelector('.day-btn-lock')) {
           const lockSpan = document.createElement('span');
           lockSpan.className = 'day-btn-lock';
-          lockSpan.textContent = ' 🔒';
+          lockSpan.innerHTML = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
           btn.appendChild(lockSpan);
         }
       }

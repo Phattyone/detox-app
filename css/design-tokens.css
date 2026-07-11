@@ -100,6 +100,10 @@ body{background:var(--cream);color:var(--ink)}
   background-size:9px;background-position:center;background-repeat:no-repeat;
 }
 .day-btn.day-btn-future{opacity:.55}
+.day-btn-lock{
+  display:inline-flex;align-items:center;justify-content:center;
+  margin-left:2px;color:inherit;
+}
 .day-btn.active .day-num,
 .day-btn.active .day-label,
 .day-btn.day-btn-today .day-num,
