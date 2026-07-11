@@ -4,21 +4,21 @@
 /* ── BRAND TOKENS ─────────────────────────────────────────────────────────── */
 :root {
   --dk-green:    #1B4332;
-  --md-green:    #2D6A4F;
-  --lt-green:    #D8F3DC;
-  --pale-green:  #F0FAF4;
-  --amber:       #E8813A;
-  --lt-amber:    #FFF3E0;
-  --amber-dk:    #B8621A;
-  --teal:        #3D6B8C;
-  --lt-teal:     #E8F4F8;
+  --md-green:    #74A57F;
+  --lt-green:    #DCEBDD;
+  --pale-green:  #DCEBDD;
+  --amber:       #D9A441;
+  --lt-amber:    #F3E3C2;
+  --amber-dk:    #C96F4A;
+  --teal:        #7FB6C4;
+  --lt-teal:     #DCEEF2;
   --white:       #FFFFFF;
-  --off-white:   #FAFAF8;
+  --off-white:   #FAF5EA;
   --lt-gray:     #F4F4F2;
   --mid-gray:    #9A9A96;
   --dk-gray:     #3A3A36;
-  --text:        #2A2A26;
-  --text-muted:  #6A6A66;
+  --text:        #22382E;
+  --text-muted:  #5C7266;
 
   --font-display: 'Fraunces', Georgia, serif;
   --font-body:    'Nunito', system-ui, sans-serif;
