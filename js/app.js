@@ -4343,8 +4343,11 @@ function gateCompanionWidget() {
   if (tapBtn) {
     tapBtn.disabled = true;
     tapBtn.style.opacity = '0.6';
-    if (!tapBtn.textContent.includes('\u{1F512}')) {
-      tapBtn.textContent = '\u{1F512} ' + tapBtn.textContent.trim();
+    if (!tapBtn.querySelector('.tap-btn-lock')) {
+      const lockSpan = document.createElement('span');
+      lockSpan.className = 'tap-btn-lock';
+      lockSpan.textContent = '🔒';
+      tapBtn.appendChild(lockSpan);
     }
   }
 
@@ -4352,8 +4355,11 @@ function gateCompanionWidget() {
   if (tapHint) {
     tapHint.style.pointerEvents = 'none';
     tapHint.style.opacity = '0.6';
-    if (!tapHint.textContent.includes('\u{1F512}')) {
-      tapHint.textContent = '\u{1F512} ' + tapHint.textContent.trim();
+    if (!tapHint.querySelector('.tap-hint-lock')) {
+      const lockSpan = document.createElement('span');
+      lockSpan.className = 'tap-hint-lock';
+      lockSpan.textContent = '🔒';
+      tapHint.appendChild(lockSpan);
     }
   }
 

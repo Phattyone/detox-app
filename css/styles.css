@@ -2024,9 +2024,10 @@ input, select, textarea { font: inherit; }
   padding: 12px 14px;
   background: var(--pale-green);
   border-top: 1px solid var(--lt-green);
+  position: relative;
 }
-.gate-lock-icon { font-size: 12px; flex-shrink: 0; }
-.card-lock-icon { font-size: 12px; }
+.gate-lock-icon { position:absolute;top:-4px;right:-4px;font-size:12px; }
+.card-lock-icon { position:absolute;top:-4px;right:-4px;font-size:12px; }
 .gate-lock-text { flex: 1; }
 .gate-lock-title {
   font-family: var(--font-ui);

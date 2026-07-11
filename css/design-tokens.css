@@ -272,6 +272,7 @@ body{background:var(--cream);color:var(--ink)}
   display:flex;align-items:center;gap:13px;
   padding:14px 16px;
   transition:transform .15s ease;
+  position:relative;
 }
 .meal-card-header:hover{transform:translateX(3px)}
 .meal-badge{
@@ -349,6 +350,11 @@ body{background:var(--cream);color:var(--ink)}
 .nav-icon{display:none}
 .nav-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);opacity:0;margin-top:1px}
 .nav-item.active .nav-dot{opacity:1}
+
+.companion-tap-btn{position:relative}
+.tap-btn-lock{position:absolute;top:-4px;right:-4px;font-size:12px;line-height:1}
+.companion-tap-hint{position:relative}
+.tap-hint-lock{position:absolute;top:-4px;right:-4px;font-size:12px;line-height:1}
 
 /* -- Reduced motion -- */
 @media(prefers-reduced-motion:reduce){
