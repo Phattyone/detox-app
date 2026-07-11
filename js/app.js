@@ -415,6 +415,16 @@ function renderHome() {
   }
   renderAvoidCard(); // inserted inside .home-desktop-main, before #home-meals
 
+  const MEAL_SVG = {
+    'morning':   '<svg viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="14" r="4.5" fill="#E9B94D" stroke="none"/><path d="M12 5v2.5M4.9 8.4l1.8 1.8M19.1 8.4l-1.8 1.8M3 14h2.5M18.5 14H21"/></svg>',
+    'breakfast': '<svg viewBox="0 0 24 24" fill="none"><path d="M12 4c-4 0-7 2.6-7 6.2C5 15.5 8 20 12 20s7-4.5 7-9.8C19 6.6 16 4 12 4z" fill="#D96A6A"/><circle cx="9.5" cy="10" r=".9" fill="#F7E4DA"/><circle cx="13.5" cy="13" r=".9" fill="#F7E4DA"/><circle cx="11" cy="16" r=".9" fill="#F7E4DA"/><path d="M12 4c.4-1.2 1.4-2 2.8-2" stroke="#5E8A5E" stroke-width="2" stroke-linecap="round"/><path d="M12 4.2c-1.8-1.4-3.8-1-4.6.2 1.4 1 3.2.8 4.6-.2z" fill="#74A57F"/></svg>',
+    'juice':     '<svg viewBox="0 0 24 24" fill="none"><path d="M8 4h8l-1 4H9L8 4z" fill="#E9B94D"/><path d="M9 8h6v9a3 3 0 01-3 3 3 3 0 01-3-3V8z" fill="#EFA05C"/><path d="M10.5 10.5h3M10.5 13h3" stroke="#FBE9DD" stroke-width="1.4" stroke-linecap="round"/><path d="M14.5 4.5L16 2" stroke="#74A57F" stroke-width="2" stroke-linecap="round"/></svg>',
+    'lunch':     '<svg viewBox="0 0 24 24" fill="none"><path d="M4 11h16a8 8 0 01-16 0z" fill="#74A57F"/><path d="M4 11h16" stroke="#1B4332" stroke-width="1.6" stroke-linecap="round"/><path d="M8 8.5c1.2-1.5 3-1.5 4 0 1-1.5 2.8-1.5 4 0" stroke="#8DBB8F" stroke-width="2" stroke-linecap="round" fill="none"/></svg>',
+    'snack':     '<svg viewBox="0 0 24 24" fill="none"><path d="M8 4h8l-1 4H9L8 4z" fill="#E9B94D"/><path d="M9 8h6v9a3 3 0 01-3 3 3 3 0 01-3-3V8z" fill="#EFA05C"/><path d="M10.5 10.5h3M10.5 13h3" stroke="#FBE9DD" stroke-width="1.4" stroke-linecap="round"/><path d="M14.5 4.5L16 2" stroke="#74A57F" stroke-width="2" stroke-linecap="round"/></svg>',
+    'dinner':    '<svg viewBox="0 0 24 24" fill="none"><path d="M4 11h16a8 8 0 01-16 0z" fill="#74A57F"/><path d="M4 11h16" stroke="#1B4332" stroke-width="1.6" stroke-linecap="round"/><path d="M8 8.5c1.2-1.5 3-1.5 4 0 1-1.5 2.8-1.5 4 0" stroke="#8DBB8F" stroke-width="2" stroke-linecap="round" fill="none"/></svg>',
+    'evening':   '<svg viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="14" r="4.5" fill="#E9B94D" stroke="none"/><path d="M12 5v2.5M4.9 8.4l1.8 1.8M19.1 8.4l-1.8 1.8M3 14h2.5M18.5 14H21"/></svg>',
+  };
+
   const mealsHtml = MEAL_ORDER.map(mealId => {
     const recipe = RECIPE_DATA[mealId];
     if (!recipe) return '';
@@ -422,15 +432,15 @@ function renderHome() {
     return `
       <div class="meal-card" id="home-card-${mealId}">
         <div class="meal-card-header" onclick="toggleMealCard('${mealId}')">
-          <div class="meal-badge" style="background:${recipe.color}22">
-            <span>${recipe.icon}</span>
+          <div class="meal-badge">
+            ${MEAL_SVG[mealId] || MEAL_SVG['lunch']}
           </div>
           <div class="meal-card-info">
             <div class="meal-card-title">${recipe.title}</div>
             <div class="meal-card-sub">${recipe.subtitle}</div>
           </div>
           <span class="meal-card-time">${recipe.time}</span>
-          <span class="meal-card-arrow">›</span>
+          <span class="meal-card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
         </div>
         <div class="meal-card-body">
           ${renderRecipeCard(recipe)}
@@ -550,9 +560,16 @@ function buildWaterGlasses() {
   if (!container || container.dataset.built) return;
   container.dataset.built = '1';
   container.innerHTML = Array.from({length: WATER_GLASSES_TOTAL}, (_, i) => `
-    <div class="water-glass" id="wg-${i}" onclick="toggleWater(${i})">
-      <span class="water-glass-icon">💧</span>
-    </div>`).join('');
+    <button class="water-glass" id="wg-${i}" onclick="toggleWater(${i})" aria-label="Glass ${i+1}">
+      <svg viewBox="0 0 34 44">
+        <defs><clipPath id="gc-${i}"><path d="M5 3 H29 L26 41 H8 Z"/></clipPath></defs>
+        <g clip-path="url(#gc-${i})">
+          <rect class="fill" x="0" y="8" width="34" height="36" fill="#7FB6C4"/>
+          <ellipse class="fill" cx="17" cy="9" rx="14" ry="3" fill="#A8D2DC"/>
+        </g>
+        <path d="M5 3 H29 L26 41 H8 Z" fill="none" stroke="#B9C4B6" stroke-width="2.4" stroke-linejoin="round"/>
+      </svg>
+    </button>`).join('');
 }
 
 function updateWaterDisplay() {
@@ -4526,7 +4543,7 @@ function renderDailyChallenge() {
   card.id = 'daily-challenge-card';
   card.className = 'daily-challenge-card';
   card.innerHTML = `
-    <div class="challenge-header">⚡ Today's Challenge</div>
+    <div class="challenge-header"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 6.4L21 9l-5 4.4L17.5 21 12 17.3 6.5 21 8 13.4 3 9l6.6-.6L12 2z"/></svg> Today's Challenge</div>
     <div class="challenge-text">${ch.text}</div>
     <div class="challenge-footer">
       <span class="challenge-points-badge">+${ch.bonus} pts</span>
