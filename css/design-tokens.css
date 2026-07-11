@@ -352,7 +352,7 @@ body{background:var(--cream);color:var(--ink)}
 .companion-tap-btn{position:relative}
 .tap-btn-lock{position:absolute;bottom:-4px;right:-4px;font-size:12px;line-height:1}
 .companion-tap-hint{position:relative}
-.tap-hint-lock{position:absolute;bottom:-4px;right:-4px;font-size:12px;line-height:1}
+.tap-hint-lock{font-size:12px;line-height:1;margin-left:3px}
 
 /* -- Reduced motion -- */
 @media(prefers-reduced-motion:reduce){
