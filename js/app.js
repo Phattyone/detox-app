@@ -4341,8 +4341,8 @@ function gateCompanionWidget() {
 
   const tapBtn = document.getElementById('companion-tap-btn');
   if (tapBtn) {
-    tapBtn.disabled = true;
     tapBtn.style.opacity = '0.6';
+    tapBtn.onclick = () => showUpgradeModal('Unlock your cleanse companion with any paid plan.');
     if (!tapBtn.querySelector('.tap-btn-lock')) {
       const lockSpan = document.createElement('span');
       lockSpan.className = 'tap-btn-lock';

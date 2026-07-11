@@ -3148,11 +3148,6 @@ input, select, textarea { font: inherit; }
   text-transform: uppercase;
   line-height: 1;
 }
-.coach-btn-lock {
-  position: absolute;
-  top: -4px; right: -4px;
-  font-size: 12px;
-}
 
 /* ── TASK 2: AI COACH CHAT MODAL ──────────────────────────────────────────── */
 .coach-chat-modal {
