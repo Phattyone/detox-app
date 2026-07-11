@@ -1994,7 +1994,7 @@ function gateChecklist() {
       item.style.opacity = '0.5';
       item.style.cursor  = 'default';
       const box = item.querySelector('.check-box');
-      if (box) { box.textContent = '🔒'; box.style.background = 'var(--lt-gray)'; box.style.borderColor = 'var(--mid-gray)'; }
+      if (box) { box.textContent = '🔒'; box.style.background = 'var(--lt-gray)'; box.style.borderColor = 'var(--mid-gray)'; box.style.fontSize = '12px'; }
       const text = item.querySelector('.check-text');
       if (text) text.style.filter = 'blur(2.5px)';
       lockedCount++;

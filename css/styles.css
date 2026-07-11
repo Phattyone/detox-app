@@ -2025,7 +2025,8 @@ input, select, textarea { font: inherit; }
   background: var(--pale-green);
   border-top: 1px solid var(--lt-green);
 }
-.gate-lock-icon { font-size: 18px; flex-shrink: 0; }
+.gate-lock-icon { font-size: 12px; flex-shrink: 0; }
+.card-lock-icon { font-size: 12px; }
 .gate-lock-text { flex: 1; }
 .gate-lock-title {
   font-family: var(--font-ui);
@@ -2118,7 +2119,7 @@ input, select, textarea { font: inherit; }
   gap: 6px;
   z-index: 2;
 }
-.gate-blur-icon { font-size: 20px; }
+.gate-blur-icon { font-size: 12px; }
 .gate-blur-text {
   font-family: var(--font-ui);
   font-size: 12px;
