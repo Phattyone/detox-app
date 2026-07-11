@@ -1556,6 +1556,12 @@ async function _initSupabaseSession() {
       _validateCleanseOwner();
       updateAuthUI();
       renderPricingScreen();
+      if (typeof loadCloudData === 'function') {
+        loadCloudData().then(() => {
+          updateAuthUI();
+          renderPricingScreen();
+        }).catch(e => console.warn('[auth] loadCloudData on SIGNED_IN refresh failed:', e));
+      }
     }
     if (event === 'SIGNED_OUT') {
       _clearSession();
