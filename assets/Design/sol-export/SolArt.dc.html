@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">{{ art }}</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:180,&quot;height&quot;:230},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:4,&quot;options&quot;:[1,2,3,4],&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Growth&quot;},&quot;expression&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;happy&quot;,&quot;options&quot;:[&quot;happy&quot;,&quot;delighted&quot;,&quot;wink&quot;,&quot;star&quot;,&quot;celebrate&quot;,&quot;sleepy&quot;,&quot;thirsty&quot;,&quot;tired&quot;,&quot;thinking&quot;,&quot;surprised&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Face&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;plant&quot;,&quot;options&quot;:[&quot;plant&quot;,&quot;coach&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Mode&quot;},&quot;innerRing&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:39,&quot;min&quot;:10,&quot;max&quot;:42,&quot;step&quot;:1,&quot;unit&quot;:&quot;px&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Head&quot;},&quot;tiredTongue&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Face&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const h = React.createElement;
+    // ---- palette (exact) ----
+    const P = {
+      forest:'#1B4332', pine:'#0F2E21', cream:'#FAF5EA', ink:'#22382E',
+      inkSoft:'#5C7266', sage:'#DCEBDD', sageDeep:'#74A57F', gold:'#D9A441',
+      goldSoft:'#F3E3C2', petal:'#E9B94D', terra:'#C96F4A', terraSoft:'#F7E4DA',
+      water:'#7FB6C4', waterSoft:'#DCEEF2'
+    };
+    const INK = P.ink, SW = 3.2, FW = 3.6;
+    const stage = Number(this.props.stage ?? 4);
+    const expr = this.props.expression || 'happy';
+    const variant = this.props.variant || 'plant';
+    // radius of the gold accent ring on the face disc; 39 traces just inside the dark outer outline (disc r=42)
+    const innerRing = Number(this.props.innerRing ?? 39);
+
+    // ---------- primitives ----------
+    const path = (d, o={}) => h('path', {d, fill:'none', stroke:INK, strokeWidth:SW, strokeLinecap:'round', strokeLinejoin:'round', ...o});
+    const eye = (x,y,r=5.2) => [
+      h('circle',{key:'e'+x+y, cx:x, cy:y, r, fill:INK}),
+      h('circle',{key:'g'+x+y, cx:x-1.9, cy:y-2, r:1.7, fill:'#fff'})
+    ];
+    const cheek = (x,y) => h('ellipse',{key:'c'+x+y, cx:x, cy:y, rx:6.5, ry:4.6, fill:P.terra, opacity:0.42});
+    const star = (cx,cy,r,fill) => {
+      const pts=[];
+      for(let i=0;i<10;i++){ const rr=i%2?r*0.44:r; const a=-Math.PI/2+i*Math.PI/5; pts.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1)); }
+      return h('polygon',{points:pts.join(' '), fill, stroke:INK, strokeWidth:2.4, strokeLinejoin:'round'});
+    };
+    const spark = (cx,cy,r,fill=P.gold) => {
+      const pts=[];
+      for(let i=0;i<8;i++){ const rr=i%2?r*0.34:r; const a=-Math.PI/2+i*Math.PI/4; pts.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1)); }
+      return h('polygon',{key:'sp'+cx+cy, points:pts.join(' '), fill, stroke:INK, strokeWidth:1.6, strokeLinejoin:'round'});
+    };
+
+    // ---------- face groups (all on same head, centered ~ (120,92)) ----------
+    const faces = {
+      happy: () => [
+        cheek(97,99), cheek(143,99),
+        ...eye(105,84), ...eye(135,84),
+        path('M107,105 Q120,117 133,105',{strokeWidth:FW,key:'m'})
+      ],
+      delighted: () => [
+        cheek(96,100), cheek(144,100),
+        path('M99,88 Q105,80 111,88',{strokeWidth:FW,key:'le'}),
+        path('M129,88 Q135,80 141,88',{strokeWidth:FW,key:'re'}),
+        h('path',{key:'m', d:'M104,103 Q120,124 136,103 Z', fill:INK, stroke:INK, strokeWidth:FW, strokeLinejoin:'round'}),
+        h('path',{key:'t', d:'M113,113 Q120,121 127,113 Z', fill:P.terra})
+      ],
+      wink: () => [
+        cheek(97,99), cheek(143,99),
+        ...eye(105,84),
+        path('M129,89 Q135,82 141,89',{strokeWidth:FW,key:'w'}),
+        path('M107,105 Q121,118 134,104',{strokeWidth:FW,key:'m'})
+      ],
+      star: () => [
+        cheek(96,100), cheek(144,100),
+        star(105,84,10,P.gold), star(135,84,10,P.gold),
+        h('path',{key:'m', d:'M107,104 Q120,120 133,104 Z', fill:INK, stroke:INK, strokeWidth:FW, strokeLinejoin:'round'})
+      ],
+      celebrate: () => [
+        spark(64,58,8), spark(176,60,7), spark(82,126,6.5), spark(158,124,5.5),
+        cheek(95,100), cheek(145,100),
+        path('M98,88 Q105,79 112,88',{strokeWidth:FW,key:'le'}),
+        path('M128,88 Q135,79 142,88',{strokeWidth:FW,key:'re'}),
+        h('ellipse',{key:'m', cx:120, cy:108, rx:15, ry:12, fill:INK}),
+        h('path',{key:'t', d:'M110,112 Q120,122 130,112 Z', fill:P.terra})
+      ],
+      sleepy: () => [
+        h('text',{key:'z1', x:150, y:56, fontFamily:'Baloo 2, sans-serif', fontSize:15, fontWeight:700, fill:P.sageDeep, fontStyle:'italic'},'z'),
+        h('text',{key:'z2', x:162, y:44, fontFamily:'Baloo 2, sans-serif', fontSize:20, fontWeight:700, fill:P.sageDeep, fontStyle:'italic'},'z'),
+        cheek(96,100), cheek(144,100),
+        path('M98,86 Q105,92 112,86',{strokeWidth:FW,key:'le'}),
+        path('M128,86 Q135,92 142,86',{strokeWidth:FW,key:'re'}),
+        path('M113,107 Q120,112 127,107',{strokeWidth:FW,key:'m'})
+      ],
+      thirsty: () => [
+        ...eye(105,85,4.4), ...eye(135,85,4.4),
+        // sweat drop
+        h('path',{key:'d', d:'M156,74 C150,84 148,90 154,92 C160,90 160,84 156,74 Z', fill:P.water, stroke:INK, strokeWidth:2.2, strokeLinejoin:'round'}),
+        // open panting mouth + tongue
+        h('path',{key:'m', d:'M110,104 Q120,113 130,104 Z', fill:INK, stroke:INK, strokeWidth:FW, strokeLinejoin:'round'}),
+        h('path',{key:'t', d:'M114,110 q6,14 12,0 q-1,-4 -6,-4 q-5,0 -6,4 Z', fill:P.terra, stroke:INK, strokeWidth:2}),
+      ],
+      thinking: () => [
+        // rising thought dots
+        h('circle',{key:'d1', cx:158, cy:66, r:3, fill:P.inkSoft}),
+        h('circle',{key:'d2', cx:168, cy:54, r:4, fill:P.inkSoft}),
+        h('circle',{key:'d3', cx:180, cy:40, r:5.5, fill:P.inkSoft, opacity:0.85}),
+        // raised brow
+        path('M128,74 Q135,70 143,74',{strokeWidth:3,key:'b'}),
+        ...eye(104,86,5), ...eye(136,85,4.4),
+        path('M111,108 Q118,105 125,109',{strokeWidth:FW,key:'m'})
+      ],
+      tired: () => [
+        // heavy half-lidded, drooping eyes — upper lids sag over small pupils
+        path('M98,86 Q105,90 112,85',{strokeWidth:FW,key:'ll'}),
+        h('circle',{key:'lp', cx:105, cy:88, r:2.8, fill:INK}),
+        path('M128,85 Q135,90 142,86',{strokeWidth:FW,key:'rl'}),
+        h('circle',{key:'rp', cx:135, cy:88, r:2.8, fill:INK}),
+        // weary under-eye lines
+        path('M101,96 Q105,98 109,96',{strokeWidth:2,key:'lu'}),
+        path('M131,96 Q135,98 139,96',{strokeWidth:2,key:'ru'}),
+        // slightly open, worn-out mouth
+        h('path',{key:'m', d:'M110,108 Q120,104 130,108 Q124,115 120,115 Q115,115 110,108 Z', fill:P.pine, stroke:INK, strokeWidth:3, strokeLinejoin:'round'}),
+        // lolling tongue: attaches at the right corner, hangs down and to the left
+        ...(tiredTongue ? [
+          h('path',{key:'tg', d:'M128,109 C133,113 131,123 123,127 C116,130 110,125 112,118 C114,112 122,108 128,109 Z', fill:P.terra, stroke:INK, strokeWidth:2.6, strokeLinejoin:'round'}),
+          h('path',{key:'tgc', d:'M124,113 C122,119 121,123 121,126', fill:'none', stroke:INK, strokeWidth:1.8, strokeLinecap:'round', opacity:0.45}),
+          // water drop dripping from the tip of the tongue
+          h('path',{key:'wd', d:'M121,128 C117,134 116,139 121,140 C126,139 125,134 121,128 Z', fill:P.water, stroke:INK, strokeWidth:1.8, strokeLinejoin:'round'}),
+          h('circle',{key:'wg', cx:119, cy:134, r:1.3, fill:'#fff', opacity:0.8})
+        ] : [])
+      ],
+      surprised: () => [
+        // raised brows
+        path('M98,73 Q105,70 112,73',{strokeWidth:3,key:'lb'}),
+        path('M128,73 Q135,70 142,73',{strokeWidth:3,key:'rb'}),
+        h('circle',{key:'le', cx:105, cy:86, r:8, fill:P.cream, stroke:INK, strokeWidth:FW}),
+        h('circle',{key:'lp', cx:105, cy:87, r:4, fill:INK}),
+        h('circle',{key:'re', cx:135, cy:86, r:8, fill:P.cream, stroke:INK, strokeWidth:FW}),
+        h('circle',{key:'rp', cx:135, cy:87, r:4, fill:INK}),
+        h('ellipse',{key:'m', cx:120, cy:110, rx:6, ry:7, fill:P.pine, stroke:INK, strokeWidth:3})
+      ]
+    };
+
+    // ---------- head (petals + disc + face) around (cx,cy) ----------
+    const headGroup = (showFace) => {
+      const cx=120, cy=92, disc=42;
+      const petalRing = (count,start,dist,rx,ry,fill,stroke) => {
+        const els=[];
+        for(let i=0;i<count;i++){
+          const a=start+i*(360/count);
+          els.push(h('g',{key:'p'+fill+i, transform:`rotate(${a} ${cx} ${cy})`},
+            h('ellipse',{cx, cy:cy-dist, rx, ry, fill, stroke:stroke?INK:'none', strokeWidth:stroke?SW:0})));
+        }
+        return els;
+      };
+      const els = [
+        h('g',{key:'back'}, petalRing(12,15,60,10,25,P.gold,true)),
+        h('g',{key:'front'}, petalRing(12,0,53,11.5,22,P.petal,true)),
+        h('circle',{key:'disc', cx, cy, r:disc, fill:P.goldSoft, stroke:INK, strokeWidth:SW}),
+        h('circle',{key:'ring', cx, cy, r:innerRing, fill:'none', stroke:P.gold, strokeWidth:2, opacity:0.55}),
+      ];
+      if(showFace) els.push(h('g',{key:'face'}, (faces[expr]||faces.happy)()));
+      return h('g',{key:'head'}, els);
+    };
+
+    // ---------- pot ----------
+    const pot = () => h('g',{key:'pot'},
+      h('ellipse',{cx:120, cy:222, rx:59, ry:8, fill:P.forest}),
+      h('path',{d:'M62,236 L178,236 L165,290 Q163,297 155,297 L85,297 Q77,297 75,290 Z', fill:P.terra, stroke:INK, strokeWidth:SW, strokeLinejoin:'round'}),
+      h('rect',{x:54, y:212, width:132, height:24, rx:7, fill:P.terra, stroke:INK, strokeWidth:SW}),
+      h('line',{x1:60, y1:236, x2:180, y2:236, stroke:INK, strokeWidth:SW, opacity:0.35})
+    );
+
+    const droop = expr === 'tired';
+    const tiredTongue = this.props.tiredTongue !== false; // default on
+    const stem = (topY) => {
+      // when tired the stalk sags and bows to one side before straightening into the pot
+      const d = droop
+        ? `M112,${topY+6} C96,${topY+34} 108,${topY+78} 120,222`
+        : `M120,${topY} C127,${topY+40} 113,${topY+80} 120,222`;
+      return h('g',{key:'stem'},
+        h('path',{d, fill:'none', stroke:INK, strokeWidth:15, strokeLinecap:'round'}),
+        h('path',{d, fill:'none', stroke:P.sageDeep, strokeWidth:10, strokeLinecap:'round'})
+      );
+    };
+
+    const leaf = (key, d, vein) => h('g',{key},
+      h('path',{d, fill:P.sageDeep, stroke:INK, strokeWidth:SW, strokeLinejoin:'round'}),
+      h('path',{d:vein, fill:'none', stroke:P.forest, strokeWidth:2.2, strokeLinecap:'round', opacity:0.6})
+    );
+
+    // ---------- assemble per stage ----------
+    let body = [];
+    if (stage === 1) {
+      // sprout — small & simple
+      body = [
+        h('path',{key:'s', d:'M120,224 C122,214 118,208 120,200', fill:'none', stroke:INK, strokeWidth:12, strokeLinecap:'round'}),
+        h('path',{key:'s2', d:'M120,224 C122,214 118,208 120,200', fill:'none', stroke:P.sageDeep, strokeWidth:7, strokeLinecap:'round'}),
+        leaf('lc','M120,204 C104,196 90,200 86,212 C99,218 116,216 120,204 Z','M116,208 Q102,208 92,211'),
+        leaf('rc','M120,200 C136,190 150,193 155,205 C142,212 124,211 120,200 Z','M124,204 Q138,203 149,206'),
+        h('circle',{key:'tip', cx:120, cy:197, r:5, fill:P.petal, stroke:INK, strokeWidth:2.6})
+      ];
+    } else if (stage === 2) {
+      // bud
+      body = [
+        stem(150),
+        leaf('l','M118,196 C98,178 78,184 71,202 C90,210 112,212 118,196 Z','M112,199 Q94,199 76,203'),
+        leaf('r','M122,176 C142,160 162,166 169,184 C150,192 130,192 122,176 Z','M126,180 Q144,180 162,185'),
+        // green bud with peeking petals
+        h('g',{key:'bud'},
+          h('path',{d:'M110,132 q-4,-8 4,-8 q6,-6 12,0 q8,0 4,8', fill:P.petal, stroke:INK, strokeWidth:2.6, strokeLinejoin:'round'}),
+          h('path',{d:'M120,120 C102,132 102,158 120,166 C138,158 138,132 120,120 Z', fill:P.sageDeep, stroke:INK, strokeWidth:SW, strokeLinejoin:'round'}),
+          h('path',{d:'M120,126 C112,136 112,152 120,160', fill:'none', stroke:P.forest, strokeWidth:2.2, opacity:0.55}),
+          h('path',{d:'M120,126 C128,136 128,152 120,160', fill:'none', stroke:P.forest, strokeWidth:2.2, opacity:0.55})
+        )
+      ];
+    } else if (stage === 3) {
+      // bloom — full head at reduced scale
+      body = [
+        stem(146),
+        leaf('l','M118,192 C98,174 78,180 71,198 C90,206 112,208 118,192 Z','M112,195 Q94,195 76,199'),
+        leaf('r','M122,172 C142,156 162,162 169,180 C150,188 130,188 122,172 Z','M126,176 Q144,176 162,181'),
+        h('g',{key:'hg', transform:`${droop?'rotate(-20 118 146) ':''}translate(120 96) scale(0.8) translate(-120 -96)`}, headGroup(true))
+      ];
+    } else {
+      // full bloom
+      const headEl = droop
+        ? h('g',{key:'hg', transform:'rotate(-22 116 138)'}, headGroup(true))
+        : headGroup(true);
+      body = [
+        stem(134),
+        leaf('l','M118,188 C96,168 74,176 66,196 C86,204 110,206 118,188 Z','M112,192 Q92,190 74,195'),
+        leaf('r','M122,166 C144,148 166,156 174,176 C154,184 130,184 122,166 Z','M126,170 Q144,170 164,176'),
+        headEl
+      ];
+    }
+
+    // ---------- coach variant ----------
+    if (variant === 'coach') {
+      const cid = 'coachclip-' + (this._cid || (this._cid = Math.random().toString(36).slice(2)));
+      const art = h('svg',{viewBox:'0 0 240 240', width:'100%', height:'100%', style:{display:'block'}},
+        h('defs',{key:'d'}, h('clipPath',{id:cid}, h('circle',{cx:120, cy:120, r:113}))),
+        h('circle',{key:'bg', cx:120, cy:120, r:113, fill:P.gold}),
+        h('g',{key:'clip', clipPath:`url(#${cid})`},
+          h('g',{transform:'translate(120 128) scale(1.62) translate(-120 -92)'}, headGroup(true))),
+        h('circle',{key:'br', cx:120, cy:120, r:113, fill:'none', stroke:'#fff', strokeWidth:11})
+      );
+      return { art };
+    }
+
+    const art = h('svg',{viewBox:'0 0 240 300', width:'100%', height:'100%', style:{display:'block', overflow:'visible'}},
+      pot(),
+      ...body
+    );
+    return { art };
+  }
+}
+</script>
+</body>
+</html>
