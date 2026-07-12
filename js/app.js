@@ -3472,7 +3472,7 @@ function checkReminders() {
     // Award daily complete bonus when end-of-day reminder fires
     if (key === 'end_of_day') {
       const companion = getCompanion();
-      if (companion.todayPoints > 0) {
+      if (companion.pointsByDay && companion.pointsByDay[STATE.activeDay] > 0) {
         setTimeout(() => awardPoints(POINTS_DAILY_COMPLETE, 'daily'), 9000);
       }
     }
@@ -3691,7 +3691,7 @@ function toggleTodaySchedule() {
 /* ── TASK A: COMPANION DATA SYSTEM ─────────────────────────────────────────── */
 
 const COMPANION_DEFAULT = {
-  points: 0, todayPoints: 0, lastPointDate: null,
+  points: 0, todayPoints: 0, pointsByDay: {}, lastPointDate: null,
   streak: 0, lastStreakDate: null,
   badges: [], allTimePoints: 0, cleanseCount: 0,
   mood: 'neutral', growthStage: 1, lastActiveDay: null,
@@ -3728,17 +3728,11 @@ function awardPoints(amount, reason) {
   if (!isLoggedIn()) return;
   const companion = getCompanion();
   const today     = toLocalDateStr(new Date());
+  const day       = STATE.activeDay;
 
-  // Reset todayPoints if the calendar day changed
-  if (companion.lastPointDate && companion.lastPointDate !== today) {
-    companion.todayPoints = 0;
-  }
-  // Reset todayPoints if the user switched to a different cleanse day tab
-  if (companion.lastActiveDay !== null && companion.lastActiveDay !== STATE.activeDay) {
-    companion.todayPoints = 0;
-  }
+  companion.pointsByDay = companion.pointsByDay || {};
+  companion.pointsByDay[day] = (companion.pointsByDay[day] || 0) + amount;
 
-  companion.todayPoints   += amount;
   companion.points        += amount;
   companion.allTimePoints += amount;
   companion.lastPointDate  = today;
@@ -3753,11 +3747,7 @@ function awardPoints(amount, reason) {
     companion.lastStreakDate = today;
   }
 
-  // Growth stage from cleanse day
-  const day = getCleanseDay();
-  if (day && day >= 1 && day <= 7) companion.growthStage = day;
-
-  companion.mood = _calcMood(companion.todayPoints);
+  companion.mood = _calcMood(companion.pointsByDay[day] || 0);
 
   // Track thriving streak for badge
   if (companion.mood === 'thriving') {
@@ -4341,7 +4331,7 @@ function renderCompanionWidget() {
       <div class="companion-mood-phrase" id="companion-mood-label" style="color:${phraseColor}">${currentPhrase}</div>
       <div class="companion-stats">
         <div class="companion-stat">
-          <span class="stat-val" id="companion-points-today">${companion.todayPoints}</span>
+          <span class="stat-val" id="companion-points-today">${(companion.pointsByDay && companion.pointsByDay[STATE.activeDay]) || 0}</span>
           <span class="stat-label">TODAY'S PTS</span>
         </div>
         <div class="companion-stat">
@@ -4451,18 +4441,11 @@ function updateCompanionDisplay() {
   const companion = getCompanion();
   const today = toLocalDateStr(new Date());
 
-  // New calendar day — reset todayPoints
-  if (companion.lastPointDate && companion.lastPointDate !== today) {
-    companion.todayPoints = 0;
+  // Recalculate mood for whichever day is currently active, no reset needed,
+  // pointsByDay already holds each day's own permanent total
+  if (companion.lastActiveDay !== STATE.activeDay) {
     companion.lastActiveDay = STATE.activeDay;
-    companion.mood = _calcMood(0);
-    saveCompanion(companion);
-  }
-  // Day tab switched — reset todayPoints so display reflects the new active day
-  else if (companion.lastActiveDay !== null && companion.lastActiveDay !== STATE.activeDay) {
-    companion.todayPoints = 0;
-    companion.lastActiveDay = STATE.activeDay;
-    companion.mood = _calcMood(0);
+    companion.mood = _calcMood((companion.pointsByDay && companion.pointsByDay[STATE.activeDay]) || 0);
     saveCompanion(companion);
   }
 
@@ -4479,7 +4462,7 @@ function updateCompanionDisplay() {
   }
 
   const el = (id) => document.getElementById(id);
-  if (el('companion-points-today')) el('companion-points-today').textContent = companion.todayPoints;
+  if (el('companion-points-today')) el('companion-points-today').textContent = (companion.pointsByDay && companion.pointsByDay[STATE.activeDay]) || 0;
   if (el('companion-streak'))       el('companion-streak').textContent       = companion.streak;
   if (el('companion-alltime'))      el('companion-alltime').textContent      = companion.allTimePoints || '--';
   if (el('companion-mood-label')) {
