@@ -69,6 +69,18 @@ function saveWater() {
   } catch(e) {}
 }
 
+let STATE_waterMaxAwarded = {};
+try {
+  const saved = localStorage.getItem('detox_water_max_awarded');
+  if (saved) STATE_waterMaxAwarded = JSON.parse(saved);
+} catch(e) {}
+
+function saveWaterMaxAwarded() {
+  try {
+    localStorage.setItem('detox_water_max_awarded', JSON.stringify(STATE_waterMaxAwarded));
+  } catch(e) {}
+}
+
 function saveSelections() {
   try {
     localStorage.setItem('detox_selections', JSON.stringify(STATE.selections));
@@ -641,7 +653,12 @@ function toggleWater(index) {
   saveWater();
   syncDailyProgress(_isoDateForDay(day));
   playWaterSound();
-  if (filling) awardPoints(POINTS_WATER_GLASS, 'water');
+  const maxAwarded = STATE_waterMaxAwarded[day] || 0;
+  if (filling && newVal > maxAwarded) {
+    STATE_waterMaxAwarded[day] = newVal;
+    saveWaterMaxAwarded();
+    awardPoints(POINTS_WATER_GLASS, 'water');
+  }
   // Fix 4: pop animation on tapped glass
   const glass = document.getElementById(`wg-${index}`);
   if (glass) {
