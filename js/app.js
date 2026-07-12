@@ -560,6 +560,7 @@ function updateDayProgress(day) {
     }
   }
   updateWaterDisplay();
+  if (isLoggedIn()) updateCompanionDisplay();
 }
 
 /* ── WATER TRACKER ────────────────────────────────────────────────────────── */
@@ -640,7 +641,12 @@ function updateWaterDisplay() {
       variant: 'plant'
     });
     const solSvg = svgWrap.querySelector('svg');
-    if (solSvg) { solSvg.style.cursor = 'pointer'; solSvg.onclick = tapCompanion; }
+    if (solSvg) {
+      solSvg.style.cursor = 'pointer';
+      solSvg.onclick = tapCompanion;
+      solSvg.classList.add('sf-svg');
+      solSvg.classList.toggle('sf-thriving', companion.mood === 'thriving');
+    }
   }
 }
 
@@ -4356,7 +4362,12 @@ function renderCompanionWidget() {
   const grid = document.querySelector('#page-home .home-desktop-grid');
   if (grid && grid.parentNode) grid.parentNode.insertBefore(w, grid);
   const plantSvg = document.querySelector('#companion-svg svg');
-  if (plantSvg) { plantSvg.style.cursor = 'pointer'; plantSvg.onclick = tapCompanion; }
+  if (plantSvg) {
+    plantSvg.style.cursor = 'pointer';
+    plantSvg.onclick = tapCompanion;
+    plantSvg.classList.add('sf-svg');
+    plantSvg.classList.toggle('sf-thriving', companion.mood === 'thriving');
+  }
   initCompanionThoughts();
   gateCompanionWidget();
 }
@@ -4458,7 +4469,12 @@ function updateCompanionDisplay() {
       variant: 'plant'
     });
     const solSvg = svgWrap.querySelector('svg');
-    if (solSvg) { solSvg.style.cursor = 'pointer'; solSvg.onclick = tapCompanion; }
+    if (solSvg) {
+      solSvg.style.cursor = 'pointer';
+      solSvg.onclick = tapCompanion;
+      solSvg.classList.add('sf-svg');
+      solSvg.classList.toggle('sf-thriving', companion.mood === 'thriving');
+    }
   }
 
   const el = (id) => document.getElementById(id);
@@ -5059,6 +5075,7 @@ async function loadCloudData() {
     console.warn('[sync] loadCloudData error:', e);
   } finally {
     _cloudLoadInProgress = false;
+    if (isLoggedIn()) updateCompanionDisplay();
   }
 }
 

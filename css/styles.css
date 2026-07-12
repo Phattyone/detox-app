@@ -4723,11 +4723,11 @@ select:focus-visible {
 /* Idle sway — transform-origin at base of 160×200 viewBox */
 .sf-svg {
   animation: sf-idle-sway 3.5s ease-in-out infinite;
-  transform-origin: 80px 180px;
+  transform-origin: 120px 222px;
 }
 .sf-thriving {
   animation: sf-thriving-sway 2s ease-in-out infinite !important;
-  transform-origin: 80px 180px;
+  transform-origin: 120px 222px;
 }
 @keyframes sf-idle-sway {
   0%, 100% { transform: rotate(-1.5deg); }
