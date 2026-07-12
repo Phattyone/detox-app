@@ -5003,9 +5003,21 @@ async function loadCloudData() {
       if (gamRow.streak_date)  localStorage.setItem('thrivingStreakDate', gamRow.streak_date);
     }
 
-    // ── Companion state (full object — always takes precedence over gamRow partial)
+    // ── Companion state (full object — takes precedence over gamRow partial,
+    // except pointsByDay, which is merged by taking the higher value per day.
+    // This guards against a stale cloud snapshot winning a race against a
+    // same-device sync that has not landed in Supabase yet.)
     if (companionRow && companionRow.state) {
-      localStorage.setItem('cleanseCompanion', JSON.stringify(companionRow.state));
+      const localBefore = getCompanion();
+      const cloudState = companionRow.state;
+      const mergedPointsByDay = Object.assign({}, cloudState.pointsByDay || {});
+      Object.keys(localBefore.pointsByDay || {}).forEach(day => {
+        const localVal = localBefore.pointsByDay[day] || 0;
+        const cloudVal = mergedPointsByDay[day] || 0;
+        if (localVal > cloudVal) mergedPointsByDay[day] = localVal;
+      });
+      cloudState.pointsByDay = mergedPointsByDay;
+      localStorage.setItem('cleanseCompanion', JSON.stringify(cloudState));
     }
 
     // ── Past cleanses
