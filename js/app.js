@@ -627,6 +627,8 @@ function updateWaterDisplay() {
       expression: solExpressionFromMood(companion.mood),
       variant: 'plant'
     });
+    const solSvg = svgWrap.querySelector('svg');
+    if (solSvg) { solSvg.style.cursor = 'pointer'; solSvg.onclick = tapCompanion; }
   }
 }
 
@@ -4346,6 +4348,8 @@ function renderCompanionWidget() {
 
   const grid = document.querySelector('#page-home .home-desktop-grid');
   if (grid && grid.parentNode) grid.parentNode.insertBefore(w, grid);
+  const plantSvg = document.querySelector('#companion-svg svg');
+  if (plantSvg) { plantSvg.style.cursor = 'pointer'; plantSvg.onclick = tapCompanion; }
   initCompanionThoughts();
   gateCompanionWidget();
 }
@@ -4453,6 +4457,8 @@ function updateCompanionDisplay() {
       expression: solExpressionFromMood(companion.mood),
       variant: 'plant'
     });
+    const solSvg = svgWrap.querySelector('svg');
+    if (solSvg) { solSvg.style.cursor = 'pointer'; solSvg.onclick = tapCompanion; }
   }
 
   const el = (id) => document.getElementById(id);
