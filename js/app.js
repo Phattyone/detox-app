@@ -617,6 +617,17 @@ function updateWaterDisplay() {
     countEl.textContent = msgs[Math.min(count, WATER_GLASSES_TOTAL)];
     countEl.style.color = count >= WATER_GLASSES_TOTAL ? 'var(--md-green)' : 'var(--teal)';
   }
+
+  // Refresh Sol's growth stage art to reflect the new water count
+  const svgWrap = document.getElementById('companion-svg');
+  if (svgWrap && typeof renderSolArt === 'function') {
+    const companion = getCompanion();
+    svgWrap.innerHTML = renderSolArt({
+      stage: solStageFromWater(count),
+      expression: solExpressionFromMood(companion.mood),
+      variant: 'plant'
+    });
+  }
 }
 
 function toggleWater(index) {
@@ -4265,14 +4276,26 @@ const COMPANION_THOUGHTS = {
 let _lastThoughtIndex        = -1;
 let _companionThoughtInterval = null;
 
+function solStageFromWater(count) {
+  if (count >= 12) return 4;
+  if (count >= 8) return 3;
+  if (count >= 4) return 2;
+  return 1;
+}
+
+function solExpressionFromMood(mood) {
+  const map = { sad: 'sleepy', neutral: 'happy', happy: 'happy', thriving: 'celebrate' };
+  return map[mood] || 'happy';
+}
+
 function renderCompanionWidget() {
   if (!isLoggedIn()) return;
   const old = document.getElementById('companion-widget');
   if (old) old.remove();
 
   const companion = getCompanion();
-  const day = getCleanseDay();
-  if (day && day >= 1 && day <= 7) { companion.growthStage = day; saveCompanion(companion); }
+  const waterCount = STATE.water[STATE.activeDay] || 0;
+  const solStage = solStageFromWater(waterCount);
 
   const lastBadges = companion.badges.length >= 3
     ? companion.badges.slice(-3).map(b => {
@@ -4290,7 +4313,7 @@ function renderCompanionWidget() {
   w.innerHTML = `
     <div class="companion-right">
       <div class="companion-svg-wrap" id="companion-svg">
-        ${renderCompanionSVG(companion.mood, companion.growthStage)}
+        ${renderSolArt({ stage: solStage, expression: solExpressionFromMood(companion.mood), variant: 'plant' })}
       </div>
       <div class="companion-tap-hint">Tap me!</div>
     </div>
@@ -5066,5 +5089,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof showUpgradeModal === 'function') showUpgradeModal('');
     const sub = document.querySelector('#auth-pricing .auth-sub');
     if (sub) sub.textContent = 'Payment successful! Your plan will update within a few seconds. Please sign out and back in to see your new access.';
+  }
+
+  const coachBtn = document.getElementById('coach-chat-btn');
+  if (coachBtn && typeof renderSolArt === 'function') {
+    coachBtn.innerHTML = renderSolArt({ stage: 4, expression: 'happy', variant: 'coach' });
   }
 });

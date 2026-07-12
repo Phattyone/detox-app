@@ -548,24 +548,7 @@
 </div>
 
 <!-- ── AI COACH BUTTON (Task 2) ───────────────────────────────────────────── -->
-<button id="coach-chat-btn" class="coach-chat-btn" onclick="handleCoachBtnTap()" style="display:none" aria-label="Open Cleanse Coach">
-  <svg viewBox="0 0 100 100">
-    <circle cx="50" cy="50" r="24" fill="#8A5A2B"/>
-    <g fill="#E9B94D">
-      <ellipse cx="50" cy="18" rx="7" ry="13"/>
-      <ellipse cx="50" cy="82" rx="7" ry="13"/>
-      <ellipse cx="18" cy="50" rx="13" ry="7"/>
-      <ellipse cx="82" cy="50" rx="13" ry="7"/>
-      <ellipse cx="27" cy="27" rx="10" ry="10"/>
-      <ellipse cx="73" cy="27" rx="10" ry="10"/>
-      <ellipse cx="27" cy="73" rx="10" ry="10"/>
-      <ellipse cx="73" cy="73" rx="10" ry="10"/>
-    </g>
-    <circle cx="43" cy="46" r="3.4" fill="#3B2413"/>
-    <circle cx="57" cy="46" r="3.4" fill="#3B2413"/>
-    <path d="M41 55 Q50 63 59 55" stroke="#3B2413" stroke-width="3.4" fill="none" stroke-linecap="round"/>
-  </svg>
-</button>
+<button id="coach-chat-btn" class="coach-chat-btn" onclick="handleCoachBtnTap()" style="display:none" aria-label="Open Cleanse Coach"></button>
 
 <!-- ── AI COACH CHAT MODAL (Task 2) ───────────────────────────────────────── -->
 <div id="coach-chat-modal" class="coach-chat-modal" style="display:none" role="dialog" aria-label="Cleanse Coach Chat">
@@ -647,6 +630,7 @@ window.ENV = {
 </script>
 <!-- App config must load first -->
 <script src="js/config.js"></script>
+<script src="js/sol-art.js"></script>
 <!-- API client (requires config.js) -->
 <script src="js/api.js"></script>
 <!-- Supabase JS client v2 (required by auth.js) -->
