@@ -4741,7 +4741,7 @@ select:focus-visible {
 /* Tap animation */
 .sf-tapped {
   animation: sf-tap 0.6s ease forwards !important;
-  transform-origin: 80px 180px;
+  transform-origin: 120px 222px;
 }
 @keyframes sf-tap {
   0%   { transform: scale(1)    rotate(0deg);  }
