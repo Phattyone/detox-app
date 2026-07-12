@@ -324,9 +324,8 @@
         svgEl('defs', {}, svgEl('clipPath', {id:cid}, svgEl('circle', {cx:120, cy:120, r:113}))),
         svgEl('circle', {cx:120, cy:120, r:113, fill:P.gold}),
         svgEl('g', {clipPath:'url(#' + cid + ')'},
-          svgEl('g', {transform:'translate(120 128) scale(1.62) translate(-120 -92)'}, headGroup(true))
-        ),
-        svgEl('circle', {cx:120, cy:120, r:113, fill:'none', stroke:'#fff', strokeWidth:11})
+          svgEl('g', {transform:'translate(120 130) scale(1.9) translate(-120 -92)'}, headGroup(true))
+        )
       );
     }
 
