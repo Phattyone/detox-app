@@ -4446,7 +4446,14 @@ function updateCompanionDisplay() {
   }
 
   const svgWrap = document.getElementById('companion-svg');
-  if (svgWrap) svgWrap.innerHTML = renderCompanionSVG(companion.mood, companion.growthStage);
+  if (svgWrap && typeof renderSolArt === 'function') {
+    const waterCount = STATE.water[STATE.activeDay] || 0;
+    svgWrap.innerHTML = renderSolArt({
+      stage: solStageFromWater(waterCount),
+      expression: solExpressionFromMood(companion.mood),
+      variant: 'plant'
+    });
+  }
 
   const el = (id) => document.getElementById(id);
   if (el('companion-points-today')) el('companion-points-today').textContent = companion.todayPoints;
